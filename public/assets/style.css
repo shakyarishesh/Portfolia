@@ -48,10 +48,10 @@ html.intro .intro-screen { position: fixed; inset: 0; z-index: 200; display: gri
 /* cursor */
 .cursor-glow, .cursor-ring, .cursor-dot { position: fixed; left: 0; top: 0; pointer-events: none; border-radius: 50%; translate: -999px -999px; transition: opacity .3s; }
 .cursor-glow { z-index: 0; width: 220px; height: 220px; margin: -110px 0 0 -110px; background: radial-gradient(circle, rgba(255, 0, 170, .45), rgba(124, 92, 255, .3) 30%, rgba(0, 212, 255, .15) 50%, transparent 68%); mix-blend-mode: var(--glow-blend); animation: hue 6s linear infinite; }
-.cursor-ring { z-index: 100; width: 42px; height: 42px; margin: -21px 0 0 -21px; padding: 2.5px; background: conic-gradient(from var(--spin, 0deg), #ff2fb9, #ffb800, #00f0ff, #7c5cff, #ff2fb9); -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); box-shadow: 0 0 18px rgba(255, 47, 185, .6); transition: transform .2s var(--ease), opacity .3s; animation: spin 4s linear infinite; }
+.cursor-ring { z-index: 2147483600; /* above the preview/demo bar */ width: 42px; height: 42px; margin: -21px 0 0 -21px; padding: 2.5px; background: conic-gradient(from var(--spin, 0deg), #ff2fb9, #ffb800, #00f0ff, #7c5cff, #ff2fb9); -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); box-shadow: 0 0 18px rgba(255, 47, 185, .6); transition: transform .2s var(--ease), opacity .3s; animation: spin 4s linear infinite; }
 .cursor-ring.hover { transform: scale(1.8); }
 .cursor-ring.down { transform: scale(.7); }
-.cursor-dot { z-index: 101; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; background: #ff2fb9; box-shadow: 0 0 10px #ff2fb9, 0 0 22px #00f0ff; animation: hue 3s linear infinite; }
+.cursor-dot { z-index: 2147483601; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; background: #ff2fb9; box-shadow: 0 0 10px #ff2fb9, 0 0 22px #00f0ff; animation: hue 3s linear infinite; }
 .burst { position: fixed; z-index: 99; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; pointer-events: none; border: 3px solid #00f0ff; box-shadow: 0 0 24px #ff2fb9, inset 0 0 12px #ffb800; animation: burst .6s ease-out forwards; }
 @property --spin { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 @keyframes spin { to { --spin: 360deg; } }
@@ -61,7 +61,7 @@ html.fx-cursor, html.fx-cursor * { cursor: none !important; }
 html.cursor-out .cursor-glow, html.cursor-out .cursor-ring, html.cursor-out .cursor-dot { opacity: 0; }
 
 /* nav */
-.nav { position: fixed; inset: 0 0 auto; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px clamp(16px, 4vw, 48px); }
+.nav { position: fixed; inset: var(--preview-bar-h, 0px) 0 auto; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px clamp(16px, 4vw, 48px); }
 .logo { font: 700 1.4rem "JetBrains Mono", monospace; }
 .logo span { color: var(--a2); }
 .tabs { position: relative; display: flex; gap: 2px; padding: 5px; border: 1px solid var(--line); border-radius: 999px; background: var(--nav-bg); backdrop-filter: blur(14px); overflow-x: auto; scrollbar-width: none; }
@@ -83,11 +83,11 @@ html.cursor-out .cursor-glow, html.cursor-out .cursor-ring, html.cursor-out .cur
 .dots { position: fixed; right: clamp(10px, 2vw, 28px); top: 50%; translate: 0 -50%; z-index: 20; display: grid; gap: 12px; }
 .dots button { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--muted); background: none; cursor: pointer; transition: all .4s var(--ease); }
 .dots button.active { height: 28px; border-radius: 6px; border-color: transparent; background: var(--grad); }
-.progress { position: fixed; inset: 0 0 auto; height: 3px; z-index: 30; }
+.progress { position: fixed; inset: var(--preview-bar-h, 0px) 0 auto; height: 3px; z-index: 30; }
 .progress span { display: block; height: 100%; width: 0; background: var(--grad); transition: width .15s linear; }
 
 /* panels + transitions */
-main { position: fixed; inset: 0; }
+main { position: fixed; inset: var(--preview-bar-h, 0px) 0 0; } /* below the preview/demo bar when one is shown */
 .panel { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 110px clamp(16px, 5vw, 64px) 80px; visibility: hidden; scrollbar-width: thin; scrollbar-color: var(--a1) transparent; }
 .panel.active { visibility: visible; z-index: 2; }
 .panel.leaving { visibility: visible; z-index: 1; pointer-events: none; }

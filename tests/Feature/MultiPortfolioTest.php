@@ -138,12 +138,12 @@ class MultiPortfolioTest extends TestCase
         $this->get('/sitemap.xml')->assertOk();
         $this->get('/up')->assertOk();
 
-        // "/" and old single-site URLs use the default (oldest published) portfolio.
-        $this->get('/')->assertOk()->assertSee('Alice Adams');
+        // "/" is the platform landing page; old single-site URLs redirect to the default (oldest published) portfolio.
+        $this->get('/')->assertOk()->assertSee('Create your portfolio')->assertDontSee('Alice Adams');
         $this->get('/projects/alice-project')->assertRedirect('/alice/projects/alice-project')->assertStatus(301);
         $this->get('/blog')->assertRedirect('/alice/blog');
         config(['portfolio.default_username' => 'bob']);
-        $this->get('/')->assertOk()->assertSee('Bob Brown');
+        $this->get('/resume')->assertRedirect('/bob/resume');
     }
 
     public function test_api_and_urls_are_per_portfolio(): void

@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\DB;
 class Portfolio extends Model
 {
     public const STATUSES = [
+        'pending' => 'Pending approval', // submitted through the public /create form, waiting for an admin
         'draft' => 'Draft',
         'published' => 'Published',
+        'rejected' => 'Rejected',
         'disabled' => 'Disabled',
         'archived' => 'Archived',
     ];

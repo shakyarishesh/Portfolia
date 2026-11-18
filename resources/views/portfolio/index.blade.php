@@ -43,7 +43,7 @@
     </nav>
     <div class="nav-tools">
       @if ($hasBlog)<a class="nav-link" href="{{ route('blog.index') }}">Blog</a>@endif
-      <a class="nav-link" href="{{ route('playground') }}">API</a>
+      @if (empty($demo))<a class="nav-link" href="{{ route('playground') }}">API</a>@endif{{-- no playground in the session-only demo --}}
       <button class="icon-btn" type="button" data-terminal-open aria-label="Open interactive terminal" title="Terminal ( ` )"><span aria-hidden="true">&gt;_</span></button>
       <details class="accent-picker">
         <summary class="icon-btn" aria-label="Choose accent colour" title="Accent colour"><span class="swatch" aria-hidden="true"></span></summary>

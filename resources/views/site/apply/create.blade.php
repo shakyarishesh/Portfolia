@@ -1,0 +1,102 @@
+@extends('site.layout')
+@section('title', 'Create your portfolio · '.config('app.name'))
+@section('description', 'Fill in your details once and get a portfolio website at your own address after a quick review.')
+@push('head')
+  <link rel="stylesheet" href="{{ asset('site/apply.css') }}?v={{ filemtime(public_path('site/apply.css')) }}">
+@endpush
+@push('scripts')
+  <script src="{{ asset('site/apply.js') }}?v={{ filemtime(public_path('site/apply.js')) }}" defer></script>
+@endpush
+
+@section('content')
+<div class="wrap apply">
+  <h1>Create your portfolio</h1>
+  <p class="lead">Tell us about yourself once — we turn it into a portfolio website in the template you pick. Only your name, email and address are required; add as much of the rest as you like.</p>
+
+  @if ($errors->any())
+    <div class="error-summary" role="alert" tabindex="-1">
+      <h2>Please fix {{ $errors->count() === 1 ? 'this problem' : 'these '.$errors->count().' problems' }}</h2>
+      <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+      <p>Uploaded files are not kept after an error — choose your photo and CV again.</p>
+    </div>
+  @endif
+
+  <form method="post" action="{{ route('apply.store') }}" enctype="multipart/form-data">
+    @csrf
+    <div class="hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+    <fieldset>
+      <legend>Your address &amp; look</legend>
+      <div class="field">
+        <label for="username">Username <span aria-hidden="true">*</span></label>
+        <div class="url-input">
+          <span aria-hidden="true">{{ url('/') }}/</span>
+          <input id="username" name="username" value="{{ old('username') }}" required minlength="3" maxlength="40" pattern="{{ \App\Support\Username::PATTERN }}"
+                 autocapitalize="none" autocomplete="off" spellcheck="false" aria-describedby="username-help @error('username') username-error @enderror" @error('username') aria-invalid="true" @enderror>
+        </div>
+        <p class="help" id="username-help">Your portfolio will live at {{ url('/') }}/<b>username</b>. 3–40 lower-case letters, digits and single hyphens.</p>
+        @error('username')<p class="error" id="username-error">{{ $message }}</p>@enderror
+      </div>
+
+      <fieldset class="templates">
+        <legend>Template</legend>
+        <p class="help">You can switch later — your content stays the same.</p>
+        <div class="template-choices">
+          @foreach ($templates as $k => $t)
+            <label class="template-choice">
+              <input type="radio" name="template" value="{{ $k }}" @checked(old('template', \App\Support\Templates::DEFAULT) === $k)>
+              <img src="{{ asset($t['preview']) }}" alt="" width="320" height="200" loading="lazy">
+              <span class="template-name">{{ $t['name'] }}</span>
+              <span class="help">{{ $t['description'] }}</span>
+            </label>
+          @endforeach
+        </div>
+        @error('template')<p class="error">{{ $message }}</p>@enderror
+      </fieldset>
+    </fieldset>
+
+    <fieldset>
+      <legend>Profile</legend>
+      <div class="grid-2">
+        @foreach ($profileFields as $name => $field)
+          @include('site.apply._field', ['name' => $name, 'id' => "f-{$name}", 'errorKey' => $name, 'value' => old($name),
+              'required' => in_array('required', $field['rules'], true)])
+        @endforeach
+        <div class="field">
+          <label for="f-avatar">Profile photo</label>
+          <input type="file" id="f-avatar" name="avatar" accept="image/jpeg,image/png,image/webp" aria-describedby="f-avatar-help @error('avatar') f-avatar-error @enderror">
+          <p class="help" id="f-avatar-help">JPG, PNG or WebP, at least 100×100 px, up to {{ round(config('portfolio.uploads.image_max_kb') / 1024) }} MB.</p>
+          @error('avatar')<p class="error" id="f-avatar-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="field">
+          <label for="f-resume">CV / résumé</label>
+          <input type="file" id="f-resume" name="resume" accept="application/pdf" aria-describedby="f-resume-help @error('resume') f-resume-error @enderror">
+          <p class="help" id="f-resume-help">PDF, up to {{ round(config('portfolio.uploads.resume_max_kb') / 1024) }} MB. Visitors can download it from your portfolio.</p>
+          @error('resume')<p class="error" id="f-resume-error">{{ $message }}</p>@enderror
+        </div>
+      </div>
+    </fieldset>
+
+    @foreach ($groups as $key => $group)
+      @php $rows = old($key) ?: [[]]; @endphp
+      <fieldset class="repeat" data-group>
+        <legend>{{ $group['label'] }}</legend>
+        <p class="help">Optional — blank entries are skipped{{ $key === 'testimonials' ? '. Only include quotes the person agreed to share' : '' }}.</p>
+        @error($key)<p class="error">{{ $message }}</p>@enderror
+        <div class="repeat-rows" data-rows data-next="{{ count($rows) }}" data-max="{{ \App\Http\Controllers\ApplicationController::MAX_ROWS }}">
+          @foreach (array_values($rows) as $i => $row)
+            @include('site.apply._row', ['row' => (array) $row])
+          @endforeach
+        </div>
+        <template data-row-template>@include('site.apply._row', ['i' => '__INDEX__', 'row' => []])</template>
+        <button type="button" class="btn" data-add hidden>+ Add another {{ $group['singular'] }}</button>
+      </fieldset>
+    @endforeach
+
+    <div class="submit">
+      <p>An admin reviews every application before it goes live. Until it is approved your portfolio is not public; we may email you if something needs fixing. By submitting you confirm the information is accurate and yours to share.</p>
+      <button class="btn btn-primary" type="submit">Submit for review</button>
+    </div>
+  </form>
+</div>
+@endsection

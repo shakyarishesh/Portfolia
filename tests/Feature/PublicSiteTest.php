@@ -26,7 +26,7 @@ class PublicSiteTest extends TestCase
 
     public function test_home_shows_seeded_profile_with_seo_metadata(): void
     {
-        $this->get('/')
+        $this->get('/rishesh')
             ->assertOk()
             ->assertSee('<title>Rishesh Shakya — Backend Developer</title>', false)
             ->assertSee('property="og:title"', false)
@@ -41,7 +41,7 @@ class PublicSiteTest extends TestCase
         Project::where('slug', 'dialinger')->update(['status' => 'draft']);
         $hidden = Achievement::where('status', 'needs_review')->firstOrFail();
 
-        $this->get('/')
+        $this->get('/rishesh')
             ->assertOk()
             ->assertDontSee('Dialinger — Cloud', false)
             ->assertDontSee($hidden->title);
@@ -54,7 +54,7 @@ class PublicSiteTest extends TestCase
         Section::where('key', 'education')->update(['is_visible' => false]);
         SkillCategory::query()->update(['status' => 'draft']);
 
-        $html = $this->get('/')->assertOk()->getContent();
+        $html = $this->get('/rishesh')->assertOk()->getContent();
 
         $this->assertStringNotContainsString('id="education"', $html);
         $this->assertStringNotContainsString('id="skills"', $html);
@@ -64,7 +64,7 @@ class PublicSiteTest extends TestCase
     public function test_section_order_follows_admin_settings(): void
     {
         Section::where('key', 'contact')->update(['sort_order' => 0]);
-        $html = $this->get('/')->getContent();
+        $html = $this->get('/rishesh')->getContent();
 
         $this->assertLessThan(strpos($html, 'data-tab="home">'), strpos($html, 'data-tab="contact">'));
     }
@@ -74,7 +74,7 @@ class PublicSiteTest extends TestCase
         $rated = Skill::where('name', 'Laravel')->firstOrFail();
         $this->assertSame(3, $rated->level);
         $this->assertNull(Skill::where('name', 'Docker')->value('level'));
-        $this->get('/')->assertSee('aria-label="Strong"', false);
+        $this->get('/rishesh')->assertSee('aria-label="Strong"', false);
     }
 
     public function test_api_returns_published_content_as_json(): void
@@ -92,14 +92,14 @@ class PublicSiteTest extends TestCase
         \App\Models\Media::query()->where('collection', 'resume')->get()->each->delete();
 
         $this->get('/rishesh/resume')->assertNotFound();
-        $this->get('/')->assertDontSee('Download CV');
+        $this->get('/rishesh')->assertDontSee('Download CV');
     }
 
     public function test_markdown_in_content_is_escaped(): void
     {
         \App\Models\Profile::query()->update(['intro' => 'Hi <script>alert(1)</script> **bold** [x](javascript:alert(1))']);
 
-        $this->get('/')
+        $this->get('/rishesh')
             ->assertDontSee('<script>alert(1)</script>', false)
             ->assertDontSee('href="javascript:', false)
             ->assertSee('<strong>bold</strong>', false);

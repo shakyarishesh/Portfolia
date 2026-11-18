@@ -4,6 +4,7 @@
     $unread = \App\Models\ContactMessage::whereNull('read_at')->whereNull('archived_at')->count();
     $currentPortfolio = \App\Support\CurrentPortfolio::get();
     $switchable = \App\Models\Portfolio::query()->orderBy('name')->get(['id', 'name', 'username', 'status']);
+    $pendingApplications = $switchable->where('status', 'pending')->count();
 @endphp
 <!doctype html>
 <html lang="en">
@@ -36,6 +37,7 @@
     <div class="nav-group">
       <a class="nav {{ $nav('admin.dashboard') }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
       <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.index') }}">Portfolios <span class="count">{{ $switchable->count() }}</span></a>
+      <a class="nav {{ $nav('admin.applications.*') }}" href="{{ route('admin.applications.index') }}">Applications @if ($pendingApplications)<span class="count" title="Waiting for review">{{ $pendingApplications }}</span>@endif</a>
       <a class="nav {{ $nav('admin.analytics') }}" href="{{ route('admin.analytics') }}">Analytics</a>
       @if ($currentPortfolio)<a class="nav" href="{{ route('home') }}" target="_blank" rel="noopener">View site ↗</a>@endif
     </div>
