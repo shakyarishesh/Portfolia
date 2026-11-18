@@ -98,6 +98,23 @@
       </div>
     </fieldset>
 
+    <fieldset>
+      <legend>Your login</legend>
+      <p class="help">Choose a password so you can sign in later and keep editing your portfolio — sign in with your email, your username or your phone number.</p>
+      <div class="grid-2">
+        <div class="field">
+          <label for="f-password">Password <span aria-hidden="true">*</span></label>
+          <input type="password" id="f-password" name="password" required minlength="8" autocomplete="new-password" aria-describedby="f-password-help @error('password') f-password-error @enderror" @error('password') aria-invalid="true" @enderror>
+          <p class="help" id="f-password-help">At least 8 characters.</p>
+          @error('password')<p class="error" id="f-password-error">{{ $message }}</p>@enderror
+        </div>
+        <div class="field">
+          <label for="f-password_confirmation">Confirm password <span aria-hidden="true">*</span></label>
+          <input type="password" id="f-password_confirmation" name="password_confirmation" required minlength="8" autocomplete="new-password">
+        </div>
+      </div>
+    </fieldset>
+
     @foreach ($groups as $key => $group)
       @php $rows = old($key) ?: [[]]; @endphp
       <fieldset class="repeat" data-group>

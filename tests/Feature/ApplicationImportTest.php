@@ -84,7 +84,7 @@ class ApplicationImportTest extends TestCase
         $this->get('/create')->assertOk()->assertSee('value="jane-doe"', false)->assertSee('Acme')->assertSee('Beta')->assertSee('filled in from your file');
 
         // …and submitting it as-is creates the pending portfolio.
-        $this->post('/create', $old)->assertRedirect(route('apply.submitted'));
+        $this->post('/create', $old + ['password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1'])->assertRedirect(route('apply.submitted'));
         $p = Portfolio::where('username', 'jane-doe')->firstOrFail();
         $this->assertSame(['pending', 'gradient'], [$p->status, $p->template]);
         CurrentPortfolio::using($p, function () {

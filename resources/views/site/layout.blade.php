@@ -27,6 +27,7 @@
       <ul>
         <li><a href="{{ route('root') }}#templates">Templates</a></li>
         <li><a href="{{ route('root') }}#demo">Try the demo</a></li>
+        <li>@auth<a href="{{ route('admin.dashboard') }}">Dashboard</a>@else<a href="{{ route('login') }}">Sign in</a>@endauth</li>
         <li><a class="btn btn-primary" href="{{ route('apply.create') }}">Create your portfolio</a></li>
       </ul>
       <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false"><span class="sr-only">Dark mode</span></button>

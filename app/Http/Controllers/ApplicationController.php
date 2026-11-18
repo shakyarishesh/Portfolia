@@ -15,14 +15,17 @@ use App\Models\Portfolio;
 use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SocialLink;
+use App\Models\User;
 use App\Support\CurrentPortfolio;
 use App\Support\Templates;
 use App\Support\Username;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Public "create your portfolio" application. Everything the templates display is collected and stored
@@ -65,14 +68,20 @@ class ApplicationController extends Controller
 
         $groups = $this->groups();
         $request->merge(['username' => mb_strtolower(trim((string) $request->input('username')))] + $this->withoutEmptyRows($request, $groups));
-        $data = $request->validate($this->rules($groups), [], $this->attributeNames($groups));
+        $data = $request->validate($this->rules($groups), [
+            'email.unique' => 'An account already uses this email — sign in to edit your portfolio instead.',
+        ], $this->attributeNames($groups));
 
         $stored = [];
         try {
-            $portfolio = DB::transaction(function () use ($request, $data, $groups, &$stored) {
+            [$portfolio, $user] = DB::transaction(function () use ($request, $data, $groups, &$stored) {
+                // The applicant's own login: email, portfolio username or phone + password → the portal, own portfolio only.
+                $phone = User::normalizePhone($data['phone'] ?? null);
+                $user = User::create(['name' => $data['full_name'], 'email' => $data['email'], 'password' => $data['password'], 'is_admin' => false,
+                    'phone' => $phone && ! User::where('phone', $phone)->exists() ? $phone : null]);
                 $profile = Arr::only($data, self::PROFILE_FIELDS);
                 $portfolio = Portfolio::provision(
-                    ['name' => $data['full_name'], 'username' => $data['username'], 'status' => 'pending', 'template' => $data['template'] ?? Templates::DEFAULT],
+                    ['name' => $data['full_name'], 'username' => $data['username'], 'status' => 'pending', 'template' => $data['template'] ?? Templates::DEFAULT, 'user_id' => $user->id],
                     ['headline' => $profile['headline'] ?? ''] + $profile + ['show_phone' => false, 'open_to_work' => false],
                 );
 
@@ -85,13 +94,18 @@ class ApplicationController extends Controller
                     }
                 });
 
-                return $portfolio;
+                return [$portfolio, $user];
             });
         } catch (\Throwable $e) {
             foreach ($stored as [$disk, $path]) {
                 Storage::disk($disk)->delete($path);
             }
             throw $e;
+        }
+
+        if (! Auth::check()) {
+            Auth::login($user);
+            $request->session()->regenerate();
         }
 
         return redirect()->route('apply.submitted')->with('applied_url', $portfolio->url());
@@ -348,7 +362,9 @@ class ApplicationController extends Controller
             'template' => ['nullable', Rule::in(array_keys(Templates::available()))],
             'avatar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', "max:{$image}", 'dimensions:min_width=100,min_height=100,max_width=6000,max_height=6000'],
             'resume' => ['nullable', 'file', 'mimes:pdf', 'mimetypes:application/pdf', "max:{$resume}"],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ] + collect($this->profileFields())->map(fn ($f) => $f['rules'])->all();
+        $rules['email'][] = Rule::unique('users', 'email');
 
         foreach ($groups as $key => $group) {
             $rules[$key] = ['nullable', 'array', 'max:'.self::MAX_ROWS];

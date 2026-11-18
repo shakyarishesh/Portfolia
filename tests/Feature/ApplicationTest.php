@@ -46,6 +46,7 @@ class ApplicationTest extends TestCase
             'template' => 'professional',
             'full_name' => 'Dana Developer', 'headline' => 'Backend Developer', 'intro' => 'I build APIs.', 'about' => "Para one.\n\nPara two.",
             'location' => 'Kathmandu', 'email' => 'dana@example.test', 'phone' => '+977 9800000000', 'show_phone' => '1', 'open_to_work' => '1',
+            'password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1',
             'experience' => [
                 ['company' => 'Acme', 'company_url' => 'https://acme.test', 'role' => 'Engineer', 'employment_type' => 'full_time', 'location' => 'Remote',
                     'start_date' => '2022-01-01', 'end_date' => '', 'is_current' => '1', 'summary' => 'Built things.', 'highlights' => "Shipped X\nScaled Y", 'technologies' => 'Laravel, MySQL'],
@@ -88,7 +89,11 @@ class ApplicationTest extends TestCase
 
         $this->assertSame(2, Portfolio::count());
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
-        $this->assertSame(['pending', 'professional', 'Dana Developer', null, null], [$p->status, $p->template, $p->name, $p->user_id, $p->published_at]);
+        $this->assertSame(['pending', 'professional', 'Dana Developer', null], [$p->status, $p->template, $p->name, $p->published_at]);
+        // The applicant now has their own login (owner of just this portfolio) and is signed in.
+        $owner = User::where('email', 'dana@example.test')->sole();
+        $this->assertSame([$owner->id, false, '+9779800000000'], [$p->user_id, $owner->is_admin, $owner->phone]);
+        $this->assertAuthenticatedAs($owner);
         $this->assertSame($before, $this->counts($this->existing), 'other portfolios untouched');
 
         CurrentPortfolio::using($p, function () {
@@ -112,6 +117,8 @@ class ApplicationTest extends TestCase
     {
         $this->post('/create', $this->payload())->assertRedirect('/create/submitted');
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
+        $this->get('/dana-dev')->assertOk()->assertSee('PREVIEW'); // the signed-in applicant previews their own
+        auth()->logout();
         $this->get('/dana-dev')->assertNotFound();
 
         $this->admin();
@@ -256,6 +263,7 @@ class ApplicationTest extends TestCase
     public function test_admin_routes_need_an_admin(): void
     {
         $this->post('/create', $this->payload());
+        auth()->logout();
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
         $routes = [['get', '/admin/applications'], ['get', "/admin/applications/{$p->id}"],
             ['post', "/admin/applications/{$p->id}/approve"], ['post', "/admin/applications/{$p->id}/reject"]];
