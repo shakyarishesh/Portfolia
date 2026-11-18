@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class AuditLog extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     protected $guarded = ['id'];
 
     protected $casts = [

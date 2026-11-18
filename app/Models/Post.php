@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Post extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, Publishable;
 
     protected $guarded = ['id'];
@@ -31,6 +33,22 @@ class Post extends Model
     public function scopeNewest(Builder $query): Builder
     {
         return $query->orderByDesc('published_at')->orderByDesc('id');
+    }
+
+    public function scopeKind(Builder $query, string $kind): Builder
+    {
+        return $query->where($this->qualifyColumn('kind'), $kind);
+    }
+
+    public function isNote(): bool
+    {
+        return $this->kind === 'note';
+    }
+
+    /** Public URL (articles under /blog, notes under /notes) of the current portfolio. */
+    public function url(): string
+    {
+        return route($this->isNote() ? 'notes.show' : 'blog.show', ['post' => $this]);
     }
 
     public function isLive(): bool

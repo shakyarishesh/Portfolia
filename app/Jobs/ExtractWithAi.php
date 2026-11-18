@@ -7,6 +7,7 @@ use App\Services\Import\Extractors\ExtractionException;
 use App\Services\Import\Extractors\LlmExtractor;
 use App\Services\Import\ImportService;
 use App\Services\Import\ProposalBuilder;
+use App\Support\CurrentPortfolio;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -24,7 +25,9 @@ class ExtractWithAi implements ShouldQueue
 
     public function handle(LlmExtractor $extractor, ProposalBuilder $builder): void
     {
-        $import = ConversationImport::findOrFail($this->importId);
+        // Queue workers have no request: work inside the import's own portfolio.
+        $import = ConversationImport::withoutGlobalScope('portfolio')->findOrFail($this->importId);
+        CurrentPortfolio::set($import->portfolio);
         $import->update(['status' => 'ai_running']);
         $snapshot = ImportService::snapshot();
         $errors = [];
@@ -50,6 +53,6 @@ class ExtractWithAi implements ShouldQueue
 
     public function failed(\Throwable $e): void
     {
-        ConversationImport::whereKey($this->importId)->update(['status' => 'ai_failed', 'error' => 'AI extraction crashed: '.$e->getMessage()]);
+        ConversationImport::withoutGlobalScope('portfolio')->whereKey($this->importId)->update(['status' => 'ai_failed', 'error' => 'AI extraction crashed: '.$e->getMessage()]);
     }
 }

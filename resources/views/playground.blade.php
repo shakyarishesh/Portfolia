@@ -22,7 +22,7 @@
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap">
-      <a class="back" href="{{ url('/') }}">← {{ $profile->full_name }}</a>
+      <a class="back" href="{{ route('home') }}">← {{ $profile->full_name }}</a>
       <p class="eyebrow">API playground</p>
       <h1 class="title big">Send a request</h1>
       <p class="lead">A small sandboxed API built the way I build production endpoints: validated input, consistent JSON and correct status codes. Everything here is invented sample data. Requests are rate-limited to 30 per minute.</p>

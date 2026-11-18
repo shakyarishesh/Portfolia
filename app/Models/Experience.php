@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Experience extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, HasTechnologies, Publishable;
 
     public const TYPES = ['full_time' => 'Full-time', 'part_time' => 'Part-time', 'internship' => 'Internship', 'contract' => 'Contract', 'freelance' => 'Freelance'];

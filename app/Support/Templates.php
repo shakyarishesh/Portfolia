@@ -1,0 +1,116 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\Portfolio;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
+
+/**
+ * Template registry (config/portfolio.php → templates). Template keys from the database are only
+ * ever looked up in this allow-list; view names are built here, never taken from input.
+ *
+ * Pages every template renders: home, project, posts (article/note list), post (article/note detail).
+ */
+final class Templates
+{
+    public const DEFAULT = 'classic';
+
+    public const PAGES = ['home', 'project', 'posts', 'post'];
+
+    /** Template 1 keeps its original view files. */
+    private const CLASSIC_VIEWS = [
+        'home' => 'portfolio.index',
+        'project' => 'portfolio.project',
+        'posts' => 'blog.index',
+        'post' => 'blog.show',
+    ];
+
+    /** @return array<string, array<string, mixed>> key => metadata */
+    public static function all(): array
+    {
+        return config('portfolio.templates', []);
+    }
+
+    /** @return array<string, array<string, mixed>> */
+    public static function available(): array
+    {
+        return array_filter(self::all(), fn ($t) => $t['active'] ?? true);
+    }
+
+    public static function exists(string $key): bool
+    {
+        return array_key_exists($key, self::available());
+    }
+
+    public static function meta(string $key): array
+    {
+        return self::available()[$key] ?? self::available()[self::DEFAULT];
+    }
+
+    public static function view(string $key, string $page): string
+    {
+        abort_unless(in_array($page, self::PAGES, true), 404);
+        $key = self::exists($key) ? $key : self::DEFAULT;
+
+        return $key === self::DEFAULT ? self::CLASSIC_VIEWS[$page] : "portfolios.templates.{$key}.{$page}";
+    }
+
+    /** Template to render for this request: an authorised preview override from the session, else the live one. */
+    public static function active(Portfolio $portfolio): string
+    {
+        $override = session(self::previewKey($portfolio));
+        if ($override && self::exists($override) && Gate::allows('preview', $portfolio)) {
+            return $override;
+        }
+
+        return self::exists((string) $portfolio->template) ? $portfolio->template : self::DEFAULT;
+    }
+
+    public static function previewKey(Portfolio $portfolio): string
+    {
+        return "portfolio_preview.{$portfolio->id}";
+    }
+
+    /** Stored values merged over defaults; unknown keys dropped. */
+    public static function settings(string $key, array $stored): array
+    {
+        $out = [];
+        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+            $value = $stored[$name] ?? $field['default'] ?? null;
+            if (($field['type'] ?? null) === 'select' && ! array_key_exists((string) $value, $field['options'])) {
+                $value = $field['default'];
+            }
+            $out[$name] = ($field['type'] ?? null) === 'boolean' ? (bool) $value : $value;
+        }
+
+        return $out;
+    }
+
+    /** Validation rules for a template's settings form, prefixed "settings.". */
+    public static function rules(string $key): array
+    {
+        $rules = ['settings' => ['nullable', 'array']];
+        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+            $rules["settings.{$name}"] = match ($field['type']) {
+                'boolean' => ['nullable', 'boolean'],
+                'select' => ['nullable', Rule::in(array_keys($field['options']))],
+                'textarea' => ['nullable', 'string', 'max:'.($field['max'] ?? 2000)],
+                default => ['nullable', 'string', 'max:'.($field['max'] ?? 160)],
+            };
+        }
+
+        return $rules;
+    }
+
+    /** Validated "settings" input → normalised array to store under template_settings[$key]. */
+    public static function clean(string $key, array $input): array
+    {
+        $out = [];
+        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+            $out[$name] = $field['type'] === 'boolean' ? ! empty($input[$name]) : ($input[$name] ?? $field['default'] ?? null);
+        }
+
+        return $out;
+    }
+}

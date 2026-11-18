@@ -2,6 +2,72 @@
 
 return [
 
+    // Portfolio served at "/" (legacy single-site URL). Empty = the oldest published portfolio.
+    'default_username' => env('PORTFOLIO_DEFAULT_USERNAME'),
+
+    /*
+     | Template registry (App\Support\Templates). Add a template: add an entry here and create
+     | resources/views/portfolios/templates/{key}/{home,project,posts,post}.blade.php + public/templates/{key}/.
+     | Settings are an allow-list: type boolean|select|text|textarea; nothing outside it is stored or rendered.
+     */
+    'templates' => [
+        'classic' => [
+            'name' => 'Classic',
+            'description' => 'The original portfolio: tabbed single page, animated background, cursor effects and light/dark themes.',
+            'preview' => 'templates/classic/preview.svg',
+            'active' => true,
+            'version' => 1,
+            'sections' => ['home', 'experience', 'projects', 'skills', 'education', 'contact', 'blog'],
+            'settings' => [],
+        ],
+        'minimal_editorial' => [
+            'name' => 'Minimal Editorial',
+            'description' => 'Typography-first engineer portfolio: sticky identity column, text-led experience and project lists, restrained motion.',
+            'preview' => 'templates/minimal_editorial/preview.svg',
+            'active' => true,
+            'version' => 1,
+            'sections' => ['home', 'experience', 'projects', 'skills', 'education', 'contact', 'blog'],
+            'settings' => [
+                'accent' => ['type' => 'select', 'label' => 'Accent colour', 'default' => 'teal',
+                    'options' => ['teal' => 'Teal', 'amber' => 'Amber', 'violet' => 'Violet', 'rose' => 'Rose']],
+                'theme' => ['type' => 'select', 'label' => 'Colour scheme', 'default' => 'dark',
+                    'options' => ['dark' => 'Dark', 'light' => 'Light']],
+                'show_thumbnails' => ['type' => 'boolean', 'label' => 'Show project thumbnails', 'default' => true],
+            ],
+        ],
+        'content_journal' => [
+            'name' => 'Content Journal',
+            'description' => 'Content-first knowledge hub: short bio, evergreen notes, dated articles and projects, with light/dark mode.',
+            'preview' => 'templates/content_journal/preview.svg',
+            'active' => true,
+            'version' => 1,
+            'sections' => ['home', 'experience', 'projects', 'skills', 'education', 'contact', 'blog', 'notes'],
+            'settings' => [
+                'theme' => ['type' => 'select', 'label' => 'Default colour scheme', 'default' => 'system',
+                    'options' => ['system' => 'Follow visitor\'s system', 'light' => 'Light', 'dark' => 'Dark']],
+                'now' => ['type' => 'textarea', 'label' => '"Now" — what you are focused on (Markdown, optional)', 'max' => 2000, 'default' => null],
+                'uses' => ['type' => 'textarea', 'label' => '"Uses" — your tools and setup (Markdown, optional)', 'max' => 2000, 'default' => null],
+                'home_posts' => ['type' => 'select', 'label' => 'Articles on the home page', 'default' => '5',
+                    'options' => ['3' => '3', '5' => '5', '10' => '10']],
+            ],
+        ],
+        'creative_experience' => [
+            'name' => 'Creative Experience',
+            'description' => 'Playful, motion-rich portfolio with an interactive canvas hero and showcase project layouts; static fallback for reduced motion.',
+            'preview' => 'templates/creative_experience/preview.svg',
+            'active' => true,
+            'version' => 1,
+            'sections' => ['home', 'experience', 'projects', 'skills', 'education', 'contact', 'blog'],
+            'settings' => [
+                'palette' => ['type' => 'select', 'label' => 'Palette', 'default' => 'sunset',
+                    'options' => ['sunset' => 'Sunset', 'ocean' => 'Ocean', 'mono' => 'Monochrome']],
+                'hero' => ['type' => 'select', 'label' => 'Hero interaction', 'default' => 'particles',
+                    'options' => ['particles' => 'Particle field', 'orbits' => 'Orbiting skills', 'none' => 'Static']],
+                'motion' => ['type' => 'boolean', 'label' => 'Enable motion effects', 'default' => true],
+            ],
+        ],
+    ],
+
     'uploads' => [
         'image_max_kb' => (int) env('PORTFOLIO_IMAGE_MAX_KB', 4096),
         'resume_max_kb' => (int) env('PORTFOLIO_RESUME_MAX_KB', 10240),

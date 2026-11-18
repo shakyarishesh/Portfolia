@@ -45,8 +45,8 @@ class PublicSiteTest extends TestCase
             ->assertOk()
             ->assertDontSee('Dialinger — Cloud', false)
             ->assertDontSee($hidden->title);
-        $this->get('/projects/dialinger')->assertNotFound();
-        $this->get('/projects/hajir')->assertOk()->assertSee('What I built');
+        $this->get('/rishesh/projects/dialinger')->assertNotFound();
+        $this->get('/rishesh/projects/hajir')->assertOk()->assertSee('What I built');
     }
 
     public function test_hidden_and_empty_sections_are_left_out(): void
@@ -91,7 +91,7 @@ class PublicSiteTest extends TestCase
     {
         \App\Models\Media::query()->where('collection', 'resume')->get()->each->delete();
 
-        $this->get('/resume')->assertNotFound();
+        $this->get('/rishesh/resume')->assertNotFound();
         $this->get('/')->assertDontSee('Download CV');
     }
 

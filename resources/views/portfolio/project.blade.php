@@ -21,18 +21,19 @@
       'description' => $project->tagline,
       'url' => route('projects.show', $project),
       'image' => $project->thumbnail?->url(),
-      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => url('/')],
+      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => route('home')],
       'keywords' => $project->technologies->pluck('name')->implode(', ') ?: null,
   ]), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 </head>
 <body>
+  @include('portfolios.partials.preview-banner')
   @if ($preview)
     <div class="preview-bar" role="status">Preview — status: <b>{{ $project->status }}</b>. <a href="{{ route('admin.resources.edit', ['projects', $project->id]) }}">Back to editor</a></div>
   @endif
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap narrow">
-      <a class="back" href="{{ url('/') }}#projects">← All projects</a>
+      <a class="back" href="{{ route('home') }}#projects">← All projects</a>
       <p class="eyebrow">{{ collect([$project->category, $project->experience?->company, $project->period()])->filter()->implode(' · ') }}</p>
       <h1 class="title big">{{ $project->name }}</h1>
       @if ($project->tagline)<p class="lead">{{ $project->tagline }}</p>@endif

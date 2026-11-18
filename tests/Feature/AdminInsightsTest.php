@@ -33,7 +33,7 @@ class AdminInsightsTest extends TestCase
     public function test_page_views_are_recorded_without_personal_data_and_skip_bots(): void
     {
         $this->get('/')->assertOk();
-        $this->get('/projects/hajir', ['Referer' => 'https://www.linkedin.com/feed/'])->assertOk();
+        $this->get('/rishesh/projects/hajir', ['Referer' => 'https://www.linkedin.com/feed/'])->assertOk();
         $this->get('/', ['User-Agent' => 'Googlebot/2.1'])->assertOk();
         $this->get('/', ['DNT' => '1'])->assertOk();
 
@@ -59,13 +59,13 @@ class AdminInsightsTest extends TestCase
         $this->assertSame($versions[0]->id, Profile::first()->resume->id);
 
         auth()->logout();
-        $this->get('/resume')->assertOk();
+        $this->get('/rishesh/resume')->assertOk();
         $this->assertSame((string) $versions[0]->id, PageView::where('kind', 'resume')->value('subject'));
 
         $this->admin();
         $this->get('/admin/profile')->assertOk()->assertSee('cv-2026.pdf')->assertSee('Make active');
         $this->delete("/admin/profile/resumes/{$versions[0]->id}");
-        $this->get('/resume')->assertNotFound(); // the active one was deleted; nothing active now
+        $this->get('/rishesh/resume')->assertNotFound(); // the active one was deleted; nothing active now
     }
 
     public function test_newer_uploads_of_another_kind_do_not_hide_older_ones(): void
@@ -86,8 +86,8 @@ class AdminInsightsTest extends TestCase
 
     public function test_analytics_and_dashboard_render_with_data(): void
     {
-        $this->get('/projects/hajir');
-        $this->get('/resume');
+        $this->get('/rishesh/projects/hajir');
+        $this->get('/rishesh/resume');
         ContactMessage::create(['name' => 'A', 'email' => 'a@example.test', 'message' => 'Hello there, nice site.']);
 
         $this->admin();
@@ -118,7 +118,7 @@ class AdminInsightsTest extends TestCase
 
     public function test_contact_form_emails_the_owner(): void
     {
-        $this->post('/contact', ['name' => 'Recruiter', 'email' => 'r@example.test', 'subject' => 'Role', 'message' => 'Are you open to a backend role?'])
+        $this->post('/rishesh/contact', ['name' => 'Recruiter', 'email' => 'r@example.test', 'subject' => 'Role', 'message' => 'Are you open to a backend role?'])
             ->assertSessionHas('contact_sent');
 
         $sent = app('mailer')->getSymfonyTransport()->messages();

@@ -5,21 +5,20 @@ use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SeoController;
+use App\Http\Middleware\ResolveAdminPortfolio;
+use App\Support\Username;
 use Illuminate\Support\Facades\Route;
 
-// Public site
-Route::get('/', [PortfolioController::class, 'index'])->name('home');
-Route::get('/projects/{project:slug}', [PortfolioController::class, 'project'])->name('projects.show');
-Route::get('/resume', [PortfolioController::class, 'resume'])->name('resume');
-Route::post('/contact', [PortfolioController::class, 'contact'])->middleware('throttle:contact')->name('contact.store');
-Route::get('/api/portfolio', [PortfolioController::class, 'api'])->middleware('throttle:60,1')->name('api.portfolio');
-Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
-Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
-Route::get('/playground', [PortfolioController::class, 'playground'])->name('playground');
-Route::post('/assistant', AssistantController::class)->middleware('throttle:assistant')->name('assistant');
+// System and legacy single-site URLs. Everything here is registered before /{username} so it can never be shadowed.
+Route::get('/', [PortfolioController::class, 'root'])->name('root');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots']);
+Route::get('/api/portfolio/{username?}', [PortfolioController::class, 'api'])->middleware('throttle:60,1')->name('api.portfolio');
+// Old URLs from before multi-portfolio support → the default portfolio's equivalent.
+Route::get('/{legacy}', [PortfolioController::class, 'legacy'])
+    ->where('legacy', '(projects|blog|notes)(/[A-Za-z0-9_-]+)?|resume|playground|contact')->name('legacy');
 
 // Admin authentication (no public registration; create admins with `php artisan portfolio:admin`)
 Route::middleware('guest')->group(function () {
@@ -28,8 +27,22 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/admin/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin', ResolveAdminPortfolio::class])->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
+
+    // Portfolio management (multi-portfolio). Content screens below edit the portfolio selected here.
+    Route::get('/portfolios', [Admin\PortfolioController::class, 'index'])->name('portfolios.index');
+    Route::get('/portfolios/create', [Admin\PortfolioController::class, 'create'])->name('portfolios.create');
+    Route::post('/portfolios', [Admin\PortfolioController::class, 'store'])->name('portfolios.store');
+    Route::get('/portfolios/{portfolio}/edit', [Admin\PortfolioController::class, 'edit'])->name('portfolios.edit');
+    Route::put('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'update'])->name('portfolios.update');
+    Route::post('/portfolios/{portfolio}/status', [Admin\PortfolioController::class, 'status'])->name('portfolios.status');
+    Route::post('/portfolios/{portfolio}/template', [Admin\PortfolioController::class, 'template'])->name('portfolios.template');
+    Route::post('/portfolios/{portfolio}/template/publish', [Admin\PortfolioController::class, 'publishTemplate'])->name('portfolios.template.publish');
+    Route::delete('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'destroy'])->name('portfolios.destroy');
+    Route::post('/portfolios/{portfolio}/switch', [Admin\PortfolioController::class, 'switch'])->name('portfolios.switch');
+    Route::get('/portfolios/{portfolio}/preview', [PreviewController::class, 'start'])->name('portfolios.preview');
+    Route::post('/portfolios/{portfolio}/preview/exit', [PreviewController::class, 'exit'])->name('portfolios.preview.exit');
 
     Route::get('/profile', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
@@ -84,4 +97,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin'])->group
     Route::delete('/{slug}/{id}', [Admin\ResourceController::class, 'destroy'])->whereNumber('id')->name('resources.destroy');
     Route::post('/{slug}/{id}/status', [Admin\ResourceController::class, 'status'])->whereNumber('id')->name('resources.status');
     Route::post('/{slug}/{id}/move', [Admin\ResourceController::class, 'move'])->whereNumber('id')->name('resources.move');
+});
+
+// Public portfolios: /{username}/… — keep this group LAST so explicit routes above always win.
+Route::prefix('{username}')->where(['username' => Username::ROUTE_PATTERN])->group(function () {
+    Route::get('/', [PortfolioController::class, 'index'])->name('home');
+    Route::get('/projects', fn () => redirect(route('home').'#projects'))->name('projects.index');
+    Route::get('/projects/{project:slug}', [PortfolioController::class, 'project'])->name('projects.show');
+    Route::get('/resume', [PortfolioController::class, 'resume'])->name('resume');
+    Route::get('/contact', fn () => redirect(route('home').'#contact'))->name('contact');
+    Route::post('/contact', [PortfolioController::class, 'contact'])->middleware('throttle:contact')->name('contact.store');
+    Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
+    Route::get('/notes', [BlogController::class, 'notes'])->name('notes.index');
+    Route::get('/notes/{post:slug}', [BlogController::class, 'note'])->name('notes.show');
+    Route::get('/playground', [PortfolioController::class, 'playground'])->name('playground');
+    Route::post('/assistant', AssistantController::class)->middleware('throttle:assistant')->name('assistant');
 });
