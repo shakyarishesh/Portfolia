@@ -46,7 +46,7 @@ class PortfolioController extends Controller
         return $response;
     }
 
-    /** The portfolio served at "/" and by legacy URLs. */
+    /** The portfolio legacy single-site URLs and the bare /api/portfolio redirect to. */
     public static function defaultPortfolio(): ?Portfolio
     {
         $username = config('portfolio.default_username');
@@ -54,13 +54,6 @@ class PortfolioController extends Controller
         return Portfolio::query()->where('status', 'published')
             ->when($username, fn ($q) => $q->where('username', mb_strtolower($username)))
             ->orderBy('id')->first();
-    }
-
-    public function root(Request $request, PortfolioData $data, Assistant $assistant)
-    {
-        CurrentPortfolio::set(self::defaultPortfolio() ?? abort(404));
-
-        return $this->index($request, $data, $assistant);
     }
 
     /** /projects/x, /blog, /resume … from the single-portfolio days → /{default}/… */

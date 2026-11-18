@@ -32,10 +32,10 @@ class AdminInsightsTest extends TestCase
 
     public function test_page_views_are_recorded_without_personal_data_and_skip_bots(): void
     {
-        $this->get('/')->assertOk();
+        $this->get('/rishesh')->assertOk();
         $this->get('/rishesh/projects/hajir', ['Referer' => 'https://www.linkedin.com/feed/'])->assertOk();
-        $this->get('/', ['User-Agent' => 'Googlebot/2.1'])->assertOk();
-        $this->get('/', ['DNT' => '1'])->assertOk();
+        $this->get('/rishesh', ['User-Agent' => 'Googlebot/2.1'])->assertOk();
+        $this->get('/rishesh', ['DNT' => '1'])->assertOk();
 
         $this->assertSame(2, PageView::count());
         $view = PageView::where('kind', 'project')->firstOrFail();

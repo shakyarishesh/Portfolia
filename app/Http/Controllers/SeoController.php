@@ -10,10 +10,10 @@ use App\Support\CurrentPortfolio;
 
 class SeoController extends Controller
 {
-    /** Every published portfolio's public pages. Drafts/disabled/archived never appear. */
+    /** The landing page and every published portfolio's public pages. Drafts/disabled/archived never appear. */
     public function sitemap()
     {
-        $urls = collect();
+        $urls = collect([['loc' => url('/'), 'lastmod' => null]]); // landing page; /demo is session-only and never listed
         foreach (Portfolio::query()->where('status', 'published')->orderBy('id')->get() as $portfolio) {
             CurrentPortfolio::using($portfolio, function () use ($urls, $portfolio) {
                 $urls->push(['loc' => route('home'), 'lastmod' => $portfolio->updated_at]);
@@ -41,7 +41,8 @@ class SeoController extends Controller
 
     public function robots()
     {
-        $body = "User-agent: *\nDisallow: /admin\n\nSitemap: ".route('sitemap')."\n";
+        // /demo exactly, not every /demo… username (e.g. /demolay).
+        $body = "User-agent: *\nDisallow: /admin\nDisallow: /demo$\nDisallow: /demo?\nDisallow: /demo/\n\nSitemap: ".route('sitemap')."\n";
 
         return response($body)->header('Content-Type', 'text/plain');
     }

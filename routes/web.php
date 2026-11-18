@@ -3,7 +3,10 @@
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\AssistantController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\DemoController;
+use App\Http\Controllers\LandingController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\SeoController;
@@ -12,7 +15,18 @@ use App\Support\Username;
 use Illuminate\Support\Facades\Route;
 
 // System and legacy single-site URLs. Everything here is registered before /{username} so it can never be shadowed.
-Route::get('/', [PortfolioController::class, 'root'])->name('root');
+Route::get('/', LandingController::class)->name('root'); // product landing page with the demo form
+
+// Try-it demo: data lives only in the visitor's session, never in the database.
+Route::post('/demo', [DemoController::class, 'store'])->middleware('throttle:30,1')->name('demo.store');
+Route::get('/demo', [DemoController::class, 'show'])->name('demo.show');
+Route::get('/demo/projects/{slug}', [DemoController::class, 'project'])->name('demo.project');
+Route::delete('/demo', [DemoController::class, 'destroy'])->name('demo.destroy');
+
+// Public "create your portfolio" application → pending portfolio an admin approves.
+Route::get('/create', [ApplicationController::class, 'create'])->name('apply.create');
+Route::post('/create', [ApplicationController::class, 'store'])->middleware('throttle:applications')->name('apply.store');
+Route::get('/create/submitted', [ApplicationController::class, 'submitted'])->name('apply.submitted');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots']);
 Route::get('/api/portfolio/{username?}', [PortfolioController::class, 'api'])->middleware('throttle:60,1')->name('api.portfolio');
@@ -43,6 +57,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin', Resolve
     Route::post('/portfolios/{portfolio}/switch', [Admin\PortfolioController::class, 'switch'])->name('portfolios.switch');
     Route::get('/portfolios/{portfolio}/preview', [PreviewController::class, 'start'])->name('portfolios.preview');
     Route::post('/portfolios/{portfolio}/preview/exit', [PreviewController::class, 'exit'])->name('portfolios.preview.exit');
+
+    Route::get('/applications', [Admin\ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{portfolio}', [Admin\ApplicationController::class, 'show'])->name('applications.show');
+    Route::post('/applications/{portfolio}/approve', [Admin\ApplicationController::class, 'approve'])->name('applications.approve');
+    Route::post('/applications/{portfolio}/reject', [Admin\ApplicationController::class, 'reject'])->name('applications.reject');
 
     Route::get('/profile', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
