@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Content Journal template: narrow reading column with bio, now block, dated articles and evergreen notes">
+  <rect width="640" height="400" fill="#faf8f3"/>
+  <!-- light / dark split hint -->
+  <rect x="510" width="130" height="400" fill="#141413"/>
+  <g font-family="Georgia, serif">
+    <!-- nav -->
+    <rect x="150" y="22" width="80" height="9" rx="2" fill="#1f1d1a"/>
+    <rect x="300" y="24" width="34" height="6" rx="2" fill="#5d584f"/>
+    <rect x="344" y="24" width="30" height="6" rx="2" fill="#5d584f"/>
+    <rect x="384" y="24" width="28" height="6" rx="2" fill="#5d584f"/>
+    <rect x="440" y="19" width="50" height="16" rx="8" fill="none" stroke="#aaa498"/>
+    <line x1="150" y1="46" x2="490" y2="46" stroke="#ddd7ca"/>
+    <!-- bio -->
+    <circle cx="166" cy="76" r="16" fill="#ddd7ca"/>
+    <rect x="150" y="102" width="190" height="16" rx="3" fill="#1f1d1a"/>
+    <rect x="150" y="126" width="120" height="7" rx="2" fill="#5d584f"/>
+    <rect x="150" y="142" width="320" height="6" rx="2" fill="#5d584f" opacity=".7"/>
+    <rect x="150" y="154" width="280" height="6" rx="2" fill="#5d584f" opacity=".7"/>
+    <!-- now block -->
+    <rect x="150" y="174" width="340" height="40" fill="#f1ede3"/>
+    <rect x="150" y="174" width="3" height="40" fill="#9c3b12"/>
+    <rect x="162" y="183" width="26" height="5" rx="2" fill="#5d584f"/>
+    <rect x="162" y="196" width="240" height="6" rx="2" fill="#5d584f" opacity=".7"/>
+    <!-- writing: dated rows -->
+    <rect x="150" y="232" width="52" height="5" rx="2" fill="#5d584f"/>
+    <line x1="150" y1="242" x2="490" y2="242" stroke="#ddd7ca"/>
+    <g fill="#aaa498">
+      <rect x="150" y="254" width="44" height="5" rx="2"/>
+      <rect x="150" y="280" width="44" height="5" rx="2"/>
+      <rect x="150" y="306" width="44" height="5" rx="2"/>
+    </g>
+    <g fill="#1f1d1a">
+      <rect x="214" y="252" width="190" height="8" rx="2"/>
+      <rect x="214" y="278" width="150" height="8" rx="2"/>
+      <rect x="214" y="304" width="210" height="8" rx="2"/>
+    </g>
+    <g fill="#9c3b12" opacity=".75">
+      <rect x="214" y="265" width="70" height="4" rx="2"/>
+      <rect x="214" y="291" width="56" height="4" rx="2"/>
+      <rect x="214" y="317" width="80" height="4" rx="2"/>
+    </g>
+    <!-- notes: two-column garden -->
+    <rect x="150" y="338" width="40" height="5" rx="2" fill="#5d584f"/>
+    <line x1="150" y1="348" x2="490" y2="348" stroke="#ddd7ca"/>
+    <g fill="#9c3b12">
+      <rect x="160" y="358" width="110" height="6" rx="2"/>
+      <rect x="160" y="372" width="90" height="6" rx="2"/>
+      <rect x="330" y="358" width="100" height="6" rx="2"/>
+      <rect x="330" y="372" width="120" height="6" rx="2"/>
+    </g>
+  </g>
+  <!-- dark-mode sample on the right -->
+  <g>
+    <rect x="540" y="102" width="70" height="10" rx="2" fill="#ebe7df"/>
+    <rect x="540" y="122" width="60" height="5" rx="2" fill="#aaa498"/>
+    <rect x="540" y="254" width="70" height="6" rx="2" fill="#ebe7df"/>
+    <rect x="540" y="280" width="56" height="6" rx="2" fill="#ebe7df"/>
+    <rect x="540" y="358" width="62" height="6" rx="2" fill="#f2a77e"/>
+  </g>
+</svg>
