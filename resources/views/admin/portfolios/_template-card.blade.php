@@ -3,4 +3,7 @@
 <div class="template-card-body">
   <h3>{{ $meta['name'] }}</h3>
   <p class="small muted">{{ $meta['description'] }}</p>
+  @if (! empty($meta['reference']))
+    <p class="small"><a href="{{ $meta['reference'] }}" target="_blank" rel="noopener noreferrer">Design reference ↗</a> <span class="muted">(external inspiration, not this portfolio)</span></p>
+  @endif
 </div>
