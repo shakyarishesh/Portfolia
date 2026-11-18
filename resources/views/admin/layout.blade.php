@@ -2,6 +2,8 @@
     $nav = fn (string $route, array $params = []) => request()->routeIs($route) && (! $params || request()->route('slug') === ($params[0] ?? null)) ? 'active' : '';
     $pendingProposals = \App\Models\ProposedChange::pending()->count();
     $unread = \App\Models\ContactMessage::whereNull('read_at')->whereNull('archived_at')->count();
+    $currentPortfolio = \App\Support\CurrentPortfolio::get();
+    $switchable = \App\Models\Portfolio::query()->orderBy('name')->get(['id', 'name', 'username', 'status']);
 @endphp
 <!doctype html>
 <html lang="en">
@@ -17,10 +19,25 @@
 <div class="shell">
   <aside class="sidebar" aria-label="Admin navigation">
     <a class="brand" href="{{ route('admin.dashboard') }}"><span>rs</span> Portfolio admin</a>
+    @if ($currentPortfolio)
+      <form class="nav-group switcher" method="post" action="{{ route('admin.portfolios.switch', $currentPortfolio) }}" data-switcher>
+        @csrf
+        <p><label for="portfolio-switcher">Editing portfolio</label></p>
+        <select id="portfolio-switcher" aria-describedby="portfolio-switcher-url">
+          @foreach ($switchable as $p)
+            <option value="{{ $p->id }}" data-action="{{ route('admin.portfolios.switch', $p) }}" @selected($p->id === $currentPortfolio->id)>{{ $p->name }} ({{ $p->username }})</option>
+          @endforeach
+        </select>
+        <noscript><a class="small" href="{{ route('admin.portfolios.index') }}">Switch from the portfolio list</a></noscript>
+        <a class="small switcher-url" id="portfolio-switcher-url" href="{{ $currentPortfolio->url() }}" target="_blank" rel="noopener">{{ $currentPortfolio->url() }} ↗</a>
+        @unless ($currentPortfolio->isPublic())<span class="badge {{ $currentPortfolio->status }}">{{ \App\Models\Portfolio::STATUSES[$currentPortfolio->status] ?? $currentPortfolio->status }} · not public</span>@endunless
+      </form>
+    @endif
     <div class="nav-group">
       <a class="nav {{ $nav('admin.dashboard') }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
+      <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.index') }}">Portfolios <span class="count">{{ $switchable->count() }}</span></a>
       <a class="nav {{ $nav('admin.analytics') }}" href="{{ route('admin.analytics') }}">Analytics</a>
-      <a class="nav" href="{{ route('home') }}" target="_blank" rel="noopener">View site ↗</a>
+      @if ($currentPortfolio)<a class="nav" href="{{ route('home') }}" target="_blank" rel="noopener">View site ↗</a>@endif
     </div>
     <div class="nav-group">
       <p>Profile</p>

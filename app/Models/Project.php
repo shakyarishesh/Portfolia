@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Project extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, HasTechnologies, Publishable;
 
     protected $guarded = ['id'];

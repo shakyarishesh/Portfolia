@@ -6,6 +6,7 @@ use App\Models\Achievement;
 use App\Models\Education;
 use App\Models\Experience;
 use App\Models\ExpertiseArea;
+use App\Models\Portfolio;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\Section;
@@ -13,6 +14,7 @@ use App\Models\Skill;
 use App\Models\SkillCategory;
 use App\Models\SocialLink;
 use App\Support\AuditContext;
+use App\Support\CurrentPortfolio;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,12 +29,16 @@ class PortfolioSeeder extends Seeder
 {
     public function run(): void
     {
-        if (Profile::query()->exists()) {
+        if (Portfolio::query()->exists()) {
             $this->command?->warn('Portfolio content already exists — skipping. Use `php artisan migrate:fresh --seed` to start over.');
 
             return;
         }
 
+        $portfolio = Portfolio::create(['name' => 'Rishesh Shakya', 'username' => 'rishesh', 'template' => 'classic', 'status' => 'published', 'published_at' => now()]);
+
+        // Left current afterwards so code that runs after seeding (tests, tinker) works inside this portfolio.
+        CurrentPortfolio::set($portfolio);
         AuditContext::run('seed', function () {
             $this->profile();
             $this->sections();
@@ -86,6 +92,8 @@ class PortfolioSeeder extends Seeder
             ['skills', 'Skills', 'Toolbox', 'What I work with'],
             ['education', 'Education', 'Education', 'Where I studied'],
             ['contact', 'Contact', 'Contact', "Let's build something that adds up."],
+            ['blog', 'Blog', null, 'Writing'],
+            ['notes', 'Notes', null, 'Notes'],
         ] as $i => [$key, $label, $eyebrow, $title]) {
             Section::create(['key' => $key, 'nav_label' => $label, 'eyebrow' => $eyebrow, 'title' => $title, 'sort_order' => $i + 1]);
         }

@@ -44,6 +44,7 @@ trait Auditable
     protected function writeAudit(string $event, ?array $old, ?array $new): void
     {
         AuditLog::create([
+            'portfolio_id' => $this->portfolio_id ?? \App\Support\CurrentPortfolio::id(),
             'user_id' => auth()->id(),
             'auditable_type' => $this->getMorphClass(),
             'auditable_id' => $this->getKey(),

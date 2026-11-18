@@ -121,7 +121,7 @@ class AdminContentTest extends TestCase
         $this->put('/admin/profile', ['full_name' => 'New Name', 'headline' => 'Engineer', 'typed_phrases' => "APIs.\nTools."])->assertRedirect();
         $this->assertSame(['APIs.', 'Tools.'], \App\Models\Profile::first()->typed_phrases);
 
-        $section = \App\Models\Section::create(['key' => 'skills', 'nav_label' => 'Skills', 'title' => 'Skills', 'sort_order' => 1]);
+        $section = \App\Models\Section::where('key', 'skills')->firstOrFail();
         $this->put("/admin/sections/{$section->id}", ['nav_label' => 'Stack', 'title' => 'Toolbox', 'is_visible' => '0'])->assertRedirect();
         $this->assertFalse($section->fresh()->is_visible);
         $this->assertSame('Stack', $section->fresh()->nav_label);

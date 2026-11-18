@@ -7,14 +7,14 @@
 <!doctype html>
 <html lang="en">
 <head>
-  @include('portfolio.partials.head', ['canonical' => url('/')])
+  @include('portfolio.partials.head', ['canonical' => route('home')])
   <script>try { if (!localStorage.getItem('seenIntro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro'); } catch (e) {}</script>
   <script type="application/ld+json">{!! json_encode(array_filter([
       '@context' => 'https://schema.org',
       '@type' => 'Person',
       'name' => $profile->full_name,
       'jobTitle' => $profile->headline,
-      'url' => url('/'),
+      'url' => route('home'),
       'image' => $profile->avatarSrc(),
       'email' => $profile->email ? 'mailto:'.$profile->email : null,
       'address' => $profile->location,
@@ -25,6 +25,7 @@
   ]), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 </head>
 <body>
+  @include('portfolios.partials.preview-banner')
   <a class="skip" href="#{{ $sections->first()->key }}">Skip to content</a>
   <div class="intro-screen" aria-hidden="true"><span></span></div>
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><div class="grid"></div></div>

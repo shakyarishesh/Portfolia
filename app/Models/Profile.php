@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Profile extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable;
 
     protected $guarded = ['id'];

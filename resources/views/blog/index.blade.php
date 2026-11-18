@@ -1,3 +1,4 @@
+@php($listRoute = ($kind ?? 'article') === 'note' ? 'notes.index' : 'blog.index')
 <!doctype html>
 <html lang="en" class="doc">
 <head>
@@ -5,17 +6,18 @@
       'title' => ($tag ? "#{$tag} · " : '').'Engineering journal — '.$profile->full_name,
       'description' => "Notes on backend engineering, Laravel, databases and integrations by {$profile->full_name}.",
       'ogType' => 'website',
-      'canonical' => route('blog.index', array_filter(['tag' => $tag ?: null, 'category' => $category ?: null, 'page' => $posts->currentPage() > 1 ? $posts->currentPage() : null])),
+      'canonical' => route($listRoute, array_filter(['tag' => $tag ?: null, 'category' => $category ?: null, 'page' => $posts->currentPage() > 1 ? $posts->currentPage() : null])),
   ])
   @if ($q !== '')<meta name="robots" content="noindex">@endif
 </head>
 <body>
+  @include('portfolios.partials.preview-banner')
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap">
-      <a class="back" href="{{ url('/') }}">← {{ $profile->full_name }}</a>
+      <a class="back" href="{{ route('home') }}">← {{ $profile->full_name }}</a>
       <p class="eyebrow">Engineering journal</p>
-      <h1 class="title big">Writing</h1>
+      <h1 class="title big">{{ $listRoute === 'notes.index' ? 'Notes' : 'Writing' }}</h1>
 
       <form class="project-tools" method="get" role="search" aria-label="Search articles">
         <label class="sr-only" for="b-q">Search articles</label>
@@ -30,22 +32,22 @@
 
       @if ($tags->isNotEmpty())
         <nav class="filters" aria-label="Tags">
-          <a class="chip {{ $tag === '' ? 'active' : '' }}" href="{{ route('blog.index', array_filter(['q' => $q ?: null, 'category' => $category ?: null])) }}">All</a>
+          <a class="chip {{ $tag === '' ? 'active' : '' }}" href="{{ route($listRoute, array_filter(['q' => $q ?: null, 'category' => $category ?: null])) }}">All</a>
           @foreach ($tags as $t)
-            <a class="chip {{ $t === $tag ? 'active' : '' }}" href="{{ route('blog.index', array_filter(['tag' => $t, 'q' => $q ?: null, 'category' => $category ?: null])) }}" @if ($t === $tag) aria-current="page" @endif>#{{ $t }}</a>
+            <a class="chip {{ $t === $tag ? 'active' : '' }}" href="{{ route($listRoute, array_filter(['tag' => $t, 'q' => $q ?: null, 'category' => $category ?: null])) }}" @if ($t === $tag) aria-current="page" @endif>#{{ $t }}</a>
           @endforeach
         </nav>
       @endif
 
       @if ($posts->isEmpty())
-        <p class="empty-state">@if ($q !== '' || $tag || $category)No articles match. <a href="{{ route('blog.index') }}">See all articles</a>.@else No articles published yet.@endif</p>
+        <p class="empty-state">@if ($q !== '' || $tag || $category)No articles match. <a href="{{ route($listRoute) }}">See all articles</a>.@else No articles published yet.@endif</p>
       @else
         <div class="cards">
           @foreach ($posts as $post)
             <article class="card post-card">
               @if ($post->cover)<img class="thumb" src="{{ $post->cover->url() }}" alt="{{ $post->cover->alt ?: '' }}" loading="lazy">@endif
               <span class="tag">{{ collect([$post->category, $post->published_at->format('j M Y'), $post->readingMinutes().' min read'])->filter()->implode(' · ') }}</span>
-              <h2><a href="{{ route('blog.show', $post) }}">{{ $post->title }}</a></h2>
+              <h2><a href="{{ $post->url() }}">{{ $post->title }}</a></h2>
               @if ($post->excerpt)<p>{{ $post->excerpt }}</p>@endif
               @if ($post->tags)<div class="techs">@foreach ($post->tags as $t)<span>#{{ $t }}</span>@endforeach</div>@endif
             </article>

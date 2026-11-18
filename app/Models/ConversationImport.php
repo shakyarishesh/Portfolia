@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ConversationImport extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     public const SOURCES = ['claude_export' => 'Claude.ai export', 'claude_code' => 'Claude Code transcript', 'text' => 'Pasted / plain text'];
 
     protected $guarded = ['id'];

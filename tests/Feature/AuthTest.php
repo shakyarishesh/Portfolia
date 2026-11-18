@@ -51,7 +51,7 @@ class AuthTest extends TestCase
     public function test_admin_pages_are_not_cached_or_indexed(): void
     {
         $this->admin();
-        \App\Models\Profile::create(['full_name' => 'A', 'headline' => 'B']);
+        $this->profile();
 
         $this->get('/admin')->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow')

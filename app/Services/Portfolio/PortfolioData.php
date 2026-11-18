@@ -44,8 +44,11 @@ class PortfolioData
             'education' => $education->isNotEmpty() || $certifications->isNotEmpty(),
             'contact' => true,
         ];
-        $sections = Section::query()->ordered()->where('is_visible', true)->get()
-            ->filter(fn (Section $s) => $hasContent[$s->key] ?? false)->values();
+        $visible = Section::query()->ordered()->where('is_visible', true)->get();
+        $sections = $visible->filter(fn (Section $s) => $hasContent[$s->key] ?? false)->values();
+        $enabled = $visible->pluck('key');
+        $posts = $enabled->contains('blog') ? Post::live()->kind('article')->with('cover')->newest()->limit(10)->get() : collect();
+        $notes = $enabled->contains('notes') ? Post::live()->kind('note')->orderBy('title')->get() : collect();
         if ($sections->isEmpty()) {
             $sections = collect([new Section(['key' => 'home', 'nav_label' => 'Home', 'title' => 'About me'])]);
         }
@@ -66,7 +69,12 @@ class PortfolioData
             'testimonials' => $testimonials,
             // Lower-cased technology names used by published projects, so skills can link to them.
             'projectTech' => $projects->flatMap->technologies->pluck('name')->map(fn ($n) => mb_strtolower($n))->unique()->values(),
-            'hasBlog' => Post::live()->exists(),
+            'hasBlog' => $posts->isNotEmpty(),
+            // Multi-template additions: latest live articles, evergreen notes, and every visible section key (incl. blog/notes).
+            'hasNotes' => $notes->isNotEmpty(),
+            'posts' => $posts,
+            'notes' => $notes,
+            'enabledSections' => $enabled->values()->all(),
         ];
     }
 
@@ -90,7 +98,7 @@ class PortfolioData
                 'current' => $e->is_current, 'summary' => $e->summary, 'highlights' => $e->highlights ?? [], 'technologies' => $tech($e),
             ]),
             'projects' => $d['projects']->map(fn ($pr) => [
-                'name' => $pr->name, 'slug' => $pr->slug, 'url' => route('projects.show', $pr), 'tagline' => $pr->tagline,
+                'name' => $pr->name, 'slug' => $pr->slug, 'url' => route('projects.show', ['project' => $pr]), 'tagline' => $pr->tagline,
                 'category' => $pr->category, 'period' => $pr->period(), 'company' => $pr->experience?->company, 'role' => $pr->role,
                 'description' => $pr->description, 'problem' => $pr->problem, 'challenges' => $pr->challenges, 'features' => $pr->features ?? [], 'architecture' => $pr->architecture,
                 'live_url' => $pr->live_url, 'repo_url' => $pr->repo_url, 'technologies' => $tech($pr), 'thumbnail' => $pr->thumbnail?->url(),

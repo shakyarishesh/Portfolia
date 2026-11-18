@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Certification extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, Publishable;
 
     protected $guarded = ['id'];
