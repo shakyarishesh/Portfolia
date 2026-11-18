@@ -27,6 +27,9 @@ Route::delete('/demo', [DemoController::class, 'destroy'])->name('demo.destroy')
 Route::get('/create', [ApplicationController::class, 'create'])->name('apply.create');
 Route::post('/create', [ApplicationController::class, 'store'])->middleware('throttle:applications')->name('apply.store');
 Route::get('/create/submitted', [ApplicationController::class, 'submitted'])->name('apply.submitted');
+// Offline route: download a plain-text template, fill it in, upload it to pre-fill the form.
+Route::get('/create/template', [ApplicationController::class, 'template'])->name('apply.template');
+Route::post('/create/import', [ApplicationController::class, 'import'])->middleware('throttle:20,1')->name('apply.import');
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots']);
 Route::get('/api/portfolio/{username?}', [PortfolioController::class, 'api'])->middleware('throttle:60,1')->name('api.portfolio');

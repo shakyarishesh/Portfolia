@@ -102,6 +102,198 @@ class ApplicationController extends Controller
         return view('site.apply.submitted');
     }
 
+    /** Plain-text template of every form field, to fill in offline and upload with import(). */
+    public function template()
+    {
+        $out = [
+            '# '.config('app.name').' — portfolio details',
+            '#',
+            '# How to use this file:',
+            "#  1. Write your answers after the colons. Leave anything you don't need empty.",
+            '#  2. Long answers can continue on the next lines (leave a blank line between paragraphs).',
+            '#  3. Sections with several entries (jobs, projects …): put a line with only --- between entries.',
+            '#     Copy a whole block to add another entry.',
+            '#  4. Upload this file on '.route('apply.create').' — the form is filled in for you to check.',
+            '#     Add your photo and CV there, then submit.',
+            '# Lines starting with # are notes and are ignored.',
+            '',
+        ];
+        foreach ($this->fileSections() as $title => [$key, $fields]) {
+            $out[] = "== {$title} ==";
+            if ($key) {
+                $out[] = '# Put a line with only --- between entries.';
+            }
+            foreach ($fields as $name => $field) {
+                $hint = trim(implode(' ', array_filter([
+                    in_array('required', $field['rules'] ?? [], true) ? 'Required.' : null,
+                    $field['help'] ?? null,
+                    match ($field['type']) {
+                        'select' => 'One of: '.implode(', ', $field['options']).'.',
+                        'checkbox' => 'yes or no.',
+                        'date' => 'Date as YYYY-MM-DD'.($name === 'end_date' && $key === 'experience' ? ', or "present".' : '.'),
+                        default => null,
+                    },
+                ])));
+                if ($hint !== '') {
+                    $out[] = "# {$hint}";
+                }
+                $out[] = "{$field['label']}: ".($name === 'template' ? Templates::meta(Templates::DEFAULT)['name'] : '');
+            }
+            $out[] = '';
+        }
+
+        return response(implode("\n", $out), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="portfolio-details.txt"',
+        ]);
+    }
+
+    /** Fill the form from an uploaded template: flashed as old input, so the applicant reviews it before submitting. */
+    public function import(Request $request)
+    {
+        $request->validate(['details' => ['required', 'file', 'max:200', 'mimes:txt', 'mimetypes:text/plain']], [], ['details' => 'details file']);
+        [$data, $warnings] = $this->parseDetails((string) file_get_contents($request->file('details')->getRealPath()));
+
+        return redirect()->route('apply.create')->withInput($data)->with('import_warnings', $warnings)
+            ->with('success', 'The form below was filled in from your file. Check everything, add your photo and CV, then submit.');
+    }
+
+    /** Sections of the details file: heading => [group key (null = top-level fields), fields]. */
+    private function fileSections(): array
+    {
+        return [
+            'Your portfolio' => [null, [
+                'username' => ['type' => 'text', 'label' => 'Username', 'rules' => ['required'], 'help' => 'Your address: '.url('/').'/username. Lower-case letters, numbers and hyphens.'],
+                'template' => ['type' => 'select', 'label' => 'Template', 'options' => array_map(fn ($t) => $t['name'], Templates::available())],
+            ]],
+            'Profile' => [null, $this->profileFields()],
+        ] + collect($this->groups())->mapWithKeys(fn ($g, $key) => [$g['label'] => [$key, $g['fields']]])->all();
+    }
+
+    /** @return array{0: array, 1: list<string>} form input shaped like the POST, and lines that couldn't be used */
+    private function parseDetails(string $text): array
+    {
+        $text = preg_replace('/^\xEF\xBB\xBF/', '', $text);
+        if (! mb_check_encoding($text, 'UTF-8')) {
+            $text = mb_convert_encoding($text, 'UTF-8', 'Windows-1252');
+        }
+        $sections = collect($this->fileSections())->mapWithKeys(fn ($s, $title) => [mb_strtolower($title) => $s]);
+        $data = $warnings = [];
+        $section = $path = $type = null;
+        $row = 0;
+
+        foreach (preg_split('/\R/', $text) as $n => $line) {
+            if (str_starts_with(ltrim($line), '#')) {
+                continue;
+            }
+            if (preg_match('/^\s*==\s*(.+?)\s*==\s*$/', $line, $m)) {
+                $section = $sections[mb_strtolower($m[1])] ?? null;
+                if (! $section) {
+                    $warnings[] = 'Unknown section "'.$m[1].'" on line '.($n + 1).' was skipped.';
+                }
+                $row = $section && $section[0] ? count($data[$section[0]] ?? []) : 0;
+                $path = null;
+
+                continue;
+            }
+            if (! $section) {
+                continue;
+            }
+            if ($section[0] && trim($line) === '---') {
+                $row++;
+                $path = null;
+
+                continue;
+            }
+            if (preg_match('/^\s*([^:]{1,80}):(.*)$/', $line, $m)) {
+                $name = collect($section[1])->search(fn ($f, $k) => in_array(mb_strtolower(trim($m[1])), [mb_strtolower($f['label']), $k], true));
+                if ($name !== false) {
+                    $path = $section[0] ? "{$section[0]}.{$row}.{$name}" : $name;
+                    $type = $section[1][$name]['type'];
+                    Arr::set($data, $path, trim($m[2]));
+
+                    continue;
+                }
+                // "Label: …" that isn't a field: part of long text, otherwise a typo worth reporting.
+                if (! in_array($type, ['textarea', 'lines'], true)) {
+                    $warnings[] = 'Line '.($n + 1).' ("'.mb_strimwidth(trim($line), 0, 60, '…').'") is not a field and was skipped.';
+                    $path = null;
+
+                    continue;
+                }
+            }
+            if ($path) {
+                Arr::set($data, $path, Arr::get($data, $path)."\n".rtrim($line));
+            }
+        }
+
+        foreach ($sections as [$key, $fields]) {
+            if (! $key) {
+                $data = $this->cleanRow($data, $fields, '', $warnings);
+
+                continue;
+            }
+            $rows = [];
+            foreach ($data[$key] ?? [] as $r) {
+                ($r = $this->cleanRow($r, $fields, $key, $warnings)) && $rows[] = $r; // blank entries dropped
+            }
+            if (count($rows) > self::MAX_ROWS) {
+                $warnings[] = 'Only the first '.self::MAX_ROWS.' entries of '.$key.' were used.';
+            }
+            $data[$key] = array_slice($rows, 0, self::MAX_ROWS);
+        }
+
+        return [array_filter($data, fn ($v) => $v !== [] && $v !== ''), $warnings];
+    }
+
+    /** Trim values, drop blanks, and turn yes/no, option names and dates into what the form inputs expect. */
+    private function cleanRow(array $row, array $fields, string $group, array &$warnings): array
+    {
+        foreach ($fields as $name => $field) {
+            $value = trim((string) ($row[$name] ?? ''));
+            unset($row[$name]);
+            if ($value === '') {
+                continue;
+            }
+            $where = $field['label'].($group !== '' ? " ({$group})" : '');
+            if ($field['type'] === 'checkbox') {
+                if (in_array(mb_strtolower($value), ['yes', 'y', 'true', '1', 'x'], true)) {
+                    $row[$name] = '1';
+                }
+            } elseif ($field['type'] === 'select') {
+                $key = collect($field['options'])->search(fn ($label, $k) => in_array(mb_strtolower($value), [mb_strtolower($label), mb_strtolower((string) $k)], true));
+                if ($key !== false) {
+                    $row[$name] = (string) $key;
+                } else {
+                    $warnings[] = "\"{$value}\" is not an option for {$where}.";
+                }
+            } elseif ($field['type'] === 'date') {
+                if (in_array(mb_strtolower($value), ['present', 'current', 'now'], true) && isset($fields['is_current'])) {
+                    $row['is_current'] = '1';
+                } elseif ($date = $this->toDate($value)) {
+                    $row[$name] = $date;
+                } else {
+                    $warnings[] = "\"{$value}\" is not a date for {$where} — use YYYY-MM-DD.";
+                }
+            } else {
+                $row[$name] = $value;
+            }
+        }
+
+        return $row;
+    }
+
+    /** 2021-03-15, 2021-03, 2021, "March 2021" → Y-m-d; null when unreadable. */
+    private function toDate(string $value): ?string
+    {
+        return match (true) {
+            (bool) preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) => strtotime($value) ? $value : null,
+            (bool) preg_match('/^\d{4}-\d{2}$/', $value) => $value.'-01',
+            (bool) preg_match('/^\d{4}$/', $value) => $value.'-01-01',
+            default => ($t = strtotime('1 '.$value)) || ($t = strtotime($value)) ? date('Y-m-d', $t) : null,
+        };
+    }
+
     /** Profile fields shown on the form (labels from the admin profile form). */
     private function profileFields(): array
     {

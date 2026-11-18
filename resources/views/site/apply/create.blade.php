@@ -13,6 +13,27 @@
   <h1>Create your portfolio</h1>
   <p class="lead">Tell us about yourself once — we turn it into a portfolio website in the template you pick. Only your name, email and address are required; add as much of the rest as you like.</p>
 
+  <section class="import-box" aria-labelledby="import-title">
+    <h2 id="import-title">Prefer to fill it in offline?</h2>
+    <ol>
+      <li><a href="{{ route('apply.template') }}" download>Download the details template</a> — a plain text file.</li>
+      <li>Fill it in with any text editor (Notepad, TextEdit …). Notes in the file explain each field.</li>
+      <li>Upload it here: the form below is filled in from your file so you can check it, add your photo and CV, and submit.</li>
+    </ol>
+    <form method="post" action="{{ route('apply.import') }}" enctype="multipart/form-data" class="import-form">
+      @csrf
+      <label for="details-file">Your filled-in template</label>
+      <input type="file" id="details-file" name="details" accept=".txt,text/plain" required>
+      <button class="btn" type="submit">Fill in the form</button>
+    </form>
+    @if (session('import_warnings'))
+      <div class="import-warnings" role="status">
+        <p>Some parts of your file couldn't be used — please fill these in below:</p>
+        <ul>@foreach (session('import_warnings') as $w)<li>{{ $w }}</li>@endforeach</ul>
+      </div>
+    @endif
+  </section>
+
   @if ($errors->any())
     <div class="error-summary" role="alert" tabindex="-1">
       <h2>Please fix {{ $errors->count() === 1 ? 'this problem' : 'these '.$errors->count().' problems' }}</h2>

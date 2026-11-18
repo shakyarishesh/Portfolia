@@ -34,3 +34,13 @@ fieldset.templates { border: 0; padding: 0; margin: 0; }
 
 .submit { border-top: 1px solid var(--border); padding-top: 1rem; }
 .submit p { color: var(--muted); max-width: 65ch; }
+
+/* Offline template: download, fill in, upload to pre-fill the form. */
+.import-box { border: 1px dashed var(--accent); border-radius: var(--radius); background: #eef2ff; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.import-box h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.import-box ol { margin: 0 0 1rem; padding-left: 1.25rem; }
+.import-form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.import-form label { margin: 0; }
+.import-form input { flex: 1 1 14rem; width: auto; background: var(--surface); }
+.import-warnings { margin-top: 1rem; border-left: 4px solid #d97706; background: #fffbeb; padding: .5rem 1rem; }
+.import-warnings p { margin: 0; font-weight: 600; }
