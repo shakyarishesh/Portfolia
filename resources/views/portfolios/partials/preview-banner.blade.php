@@ -5,7 +5,8 @@
     <span>DEMO — nothing is saved; your details stay only in this browser session.</span>
     <form method="get" action="{{ route('demo.show') }}" style="margin:0;display:flex;gap:.35rem;align-items:center">
       <label for="demo-template">Template</label>
-      <select id="demo-template" name="template" style="font:inherit;padding:.1rem .3rem;border:2px solid #1c1917;border-radius:4px;background:#fff;color:#1c1917">
+      {{-- autocomplete=off: stop Firefox restoring a stale choice on reload; switch as soon as one is picked (button stays for no-JS). --}}
+      <select id="demo-template" name="template" autocomplete="off" onchange="this.form.submit()" style="font:inherit;padding:.1rem .3rem;border:2px solid #1c1917;border-radius:4px;background:#fff;color:#1c1917">
         @foreach (\App\Support\Templates::available() as $key => $t)
           <option value="{{ $key }}" @selected($key === $template)>{{ $t['name'] }}</option>
         @endforeach
