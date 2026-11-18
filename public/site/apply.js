@@ -29,3 +29,11 @@ document.querySelectorAll('[data-group]').forEach(group => {
 
 // Bring the error summary into view and focus so screen readers announce it.
 document.querySelector('.error-summary')?.focus();
+
+// End date "Present": while ticked the date is disabled (not submitted). Delegated so rows added later work too.
+const syncPresent = box => {
+  const date = box.closest('.field').querySelector('input[type=date]');
+  if (date) date.disabled = box.checked;
+};
+document.querySelectorAll('[data-present]').forEach(syncPresent);
+document.addEventListener('change', e => { if (e.target.matches('[data-present]')) syncPresent(e.target); });

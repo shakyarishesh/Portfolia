@@ -27,6 +27,9 @@
         <input type="{{ in_array($field['type'], ['url', 'email', 'date', 'number'], true) ? $field['type'] : 'text' }}" id="{{ $id }}" name="{{ $name }}" value="{{ $value }}" @required($required) @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif @if ($error) aria-invalid="true" @endif>
     @endswitch
   @endif
+  @isset($present){{-- End date's "Present" switch (the row's is_current); apply.js disables the date while it's ticked. --}}
+    <label class="check present"><input type="checkbox" id="{{ $present['id'] }}" name="{{ $present['name'] }}" value="1" data-present @checked($present['checked'])> Present <span class="sr-only">— {{ $present['label'] }}</span></label>
+  @endisset
   @isset($field['help'])<p class="help" id="{{ $id }}-help">{{ $field['help'] }}</p>@endisset
   @if ($error)<p class="error" id="{{ $id }}-error">{{ $error }}</p>@endif
 </div>

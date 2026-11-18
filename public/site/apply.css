@@ -44,3 +44,5 @@ fieldset.templates { border: 0; padding: 0; margin: 0; }
 .import-form input { flex: 1 1 14rem; width: auto; background: var(--surface); }
 .import-warnings { margin-top: 1rem; border-left: 4px solid var(--warn); background: var(--warn-soft); padding: .5rem 1rem; }
 .import-warnings p { margin: 0; font-weight: 600; }
+.apply .check.present { margin-top: .4rem; font-weight: 500; }
+.apply input[type=date]:disabled { opacity: .5; }

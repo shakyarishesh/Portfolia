@@ -38,7 +38,7 @@ class ApplicationController extends Controller
     /** Repeatable groups: input key => [heading, one row's name, resource, fields]. */
     private const GROUPS = [
         'experience' => ['Experience', 'job', ExperienceResource::class, ['company', 'company_url', 'role', 'employment_type', 'location', 'start_date', 'end_date', 'is_current', 'summary', 'highlights', 'technologies']],
-        'projects' => ['Projects', 'project', ProjectResource::class, ['name', 'tagline', 'category', 'description', 'role', 'start_date', 'end_date', 'live_url', 'repo_url', 'technologies', 'is_featured']],
+        'projects' => ['Projects', 'project', ProjectResource::class, ['name', 'tagline', 'category', 'description', 'role', 'start_date', 'end_date', 'is_current', 'live_url', 'repo_url', 'technologies', 'is_featured']],
         'skills' => ['Skills', 'skill group', SkillCategoryResource::class, ['name']],
         'education' => ['Education', 'education entry', EducationResource::class, ['institution', 'degree', 'field', 'location', 'start_year', 'end_year']],
         'certifications' => ['Certifications', 'certification', CertificationResource::class, ['name', 'issuer', 'issued_on', 'credential_url']],
@@ -130,7 +130,7 @@ class ApplicationController extends Controller
                     match ($field['type']) {
                         'select' => 'One of: '.implode(', ', $field['options']).'.',
                         'checkbox' => 'yes or no.',
-                        'date' => 'Date as YYYY-MM-DD'.($name === 'end_date' && $key === 'experience' ? ', or "present".' : '.'),
+                        'date' => 'Date as YYYY-MM-DD'.($name === 'end_date' && isset($fields['is_current']) ? ', or "present".' : '.'),
                         default => null,
                     },
                 ])));
@@ -331,7 +331,9 @@ class ApplicationController extends Controller
                 continue; // absent, or rejected by the "array" rule
             }
             $text = array_keys(array_filter($group['fields'], fn ($f) => ! in_array($f['type'], ['select', 'checkbox'], true)));
-            $out[$key] = array_values(array_filter($rows, fn ($row) => ! is_array($row) || Arr::first($text, fn ($n) => filled($row[$n] ?? null)) !== null));
+            $rows = array_values(array_filter($rows, fn ($row) => ! is_array($row) || Arr::first($text, fn ($n) => filled($row[$n] ?? null)) !== null));
+            // "Present" ticked: the end date is meaningless (and may be stale from before it was ticked).
+            $out[$key] = array_map(fn ($row) => is_array($row) && filled($row['is_current'] ?? null) ? Arr::except($row, 'end_date') : $row, $rows);
         }
 
         return $out;

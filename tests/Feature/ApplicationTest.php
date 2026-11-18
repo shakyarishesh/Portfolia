@@ -200,6 +200,39 @@ class ApplicationTest extends TestCase
             ->assertSee('value="Bad"', false)->assertSee('id="projects-1-live_url-error"', false)->assertSee('live url (project 2)');
     }
 
+    public function test_present_end_date_marks_the_entry_current_and_drops_any_end_date(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->get('/create')->assertSee('name="experience[0][is_current]"', false)->assertSee('name="projects[0][is_current]"', false)->assertSee('data-present', false);
+
+        $this->post('/create', $this->payload([
+            // A stale end date before "Present" was ticked (it would also fail after_or_equal) is ignored.
+            'experience' => [['company' => 'Acme', 'role' => 'Engineer', 'employment_type' => 'full_time', 'start_date' => '2022-01-01', 'end_date' => '2021-01-01', 'is_current' => '1']],
+            'projects' => [['name' => 'Rocket', 'start_date' => '2023-01-01', 'is_current' => '1'], ['name' => 'Done', 'start_date' => '2023-01-01', 'end_date' => '2023-06-01']],
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('apply.submitted'));
+
+        CurrentPortfolio::using(Portfolio::where('username', 'dana-dev')->firstOrFail(), function () {
+            $job = Experience::firstOrFail();
+            $this->assertTrue($job->is_current);
+            $this->assertNull($job->end_date);
+            $this->assertSame('Jan 2022 – Present', $job->period());
+            $this->assertSame([true, false], Project::orderBy('sort_order')->pluck('is_current')->all());
+            $this->assertNull(Project::where('name', 'Rocket')->value('end_date'));
+        });
+    }
+
+    public function test_errors_stay_on_their_row_when_blank_rows_and_gaps_come_first(): void
+    {
+        // Rows added/removed with JS can arrive as [0 => blank, 3 => filled]: the filled one is "job 1" and keeps its date.
+        $payload = $this->payload(['experience' => [
+            0 => ['company' => '', 'role' => '', 'employment_type' => 'full_time'],
+            3 => ['company' => 'Hajir', 'role' => '', 'employment_type' => 'full_time', 'start_date' => '2026-03-01', 'end_date' => '2026-11-18'],
+        ]]);
+        $this->post('/create', $payload)->assertSessionHasErrors('experience.0.role')->assertSessionDoesntHaveErrors(['experience.0.start_date', 'experience.1.start_date']);
+        $this->followingRedirects()->from('/create')->post('/create', $payload)
+            ->assertSee('value="2026-03-01"', false)->assertSee('id="experience-0-role-error"', false)->assertDontSee('start date (job');
+    }
+
     public function test_too_many_rows_are_rejected(): void
     {
         $this->post('/create', $this->payload(['expertise' => array_fill(0, 21, ['title' => 'X'])]))->assertSessionHasErrors('expertise');
