@@ -1,6 +1,6 @@
 @extends('admin.layout')
 @section('title', $portfolio->name)
-@section('crumbs')<a href="{{ route('admin.portfolios.index') }}">Portfolios</a> / {{ $portfolio->username }}@endsection
+@section('crumbs')@can('admin')<a href="{{ route('admin.portfolios.index') }}">Portfolios</a> / @endcan{{ $portfolio->username }}@endsection
 @section('actions')
   @unless ($isCurrent)
     <form class="inline" method="post" action="{{ route('admin.portfolios.switch', $portfolio) }}">@csrf<button class="btn">Edit this portfolio's content</button></form>
@@ -43,7 +43,7 @@
 
       <div class="form-actions">
         <button class="btn primary" type="submit" data-loading="Saving…">Save changes</button>
-        <a class="btn" href="{{ route('admin.portfolios.index') }}">Cancel</a>
+        <a class="btn" href="{{ Gate::allows('admin') ? route('admin.portfolios.index') : route('admin.dashboard') }}">Cancel</a>
       </div>
     </form>
 
@@ -79,6 +79,24 @@
         @if ($portfolio->published_at)<span class="small muted">first published {{ $portfolio->published_at->toFormattedDateString() }}</span>@endif</p>
       @unless ($portfolio->isPublic())<p class="small muted">Not visible to the public. You (and the owner) see it with a PREVIEW banner.</p>@endunless
     </div>
+    @can('manage', $portfolio)
+      <form class="card stack" method="post" action="{{ route('admin.portfolios.owner', $portfolio) }}">
+        @csrf
+        <h2>Owner login</h2>
+        @if ($owner)
+          <p class="small">{{ $owner->name }} · {{ $owner->email }}@if ($owner->phone) · {{ $owner->phone }}@endif — signs in at <a href="{{ route('login') }}">{{ route('login') }}</a> with their email, <code>{{ $portfolio->username }}</code> or phone, and edits only this portfolio.</p>
+          <p class="small muted">Set a new password (and optionally a phone) for them:</p>
+        @else
+          <p class="small muted">No one can sign in to edit this portfolio yet. Create a login for its owner — they will see only this portfolio. (Or pick an existing user as Owner in Details.)</p>
+          @include('admin.partials.field', ['name' => 'owner_name', 'field' => ['type' => 'text', 'label' => 'Name', 'rules' => ['required']], 'value' => old('owner_name', $portfolio->name)])
+          @include('admin.partials.field', ['name' => 'owner_email', 'field' => ['type' => 'email', 'label' => 'Email', 'rules' => ['required']], 'value' => old('owner_email')])
+        @endif
+        @include('admin.partials.field', ['name' => 'owner_phone', 'field' => ['type' => 'text', 'label' => 'Phone (optional, can be used to sign in)'], 'value' => old('owner_phone', $owner?->phone)])
+        @include('admin.partials.field', ['name' => 'password', 'field' => ['type' => 'password', 'label' => $owner ? 'New password' : 'Password', 'rules' => ['required'], 'help' => 'At least 8 characters. Share it with them privately.'], 'value' => null])
+        @include('admin.partials.field', ['name' => 'password_confirmation', 'field' => ['type' => 'password', 'label' => 'Confirm password', 'rules' => ['required']], 'value' => null])
+        <button class="btn primary" type="submit">{{ $owner ? 'Set new password' : 'Create login' }}</button>
+      </form>
+    @endcan
     <div class="card stack">
       <h2>Content &amp; sections</h2>
       @if ($isCurrent)
@@ -90,6 +108,7 @@
       @endif
       <p class="small muted">Section visibility and order are set on <b>Sections &amp; order</b> and apply to the switched-to portfolio.</p>
     </div>
+    @can('delete', $portfolio)
     <form class="card stack" id="delete" method="post" action="{{ route('admin.portfolios.destroy', $portfolio) }}">
       @csrf @method('DELETE')
       <h2>Danger zone</h2>
@@ -101,6 +120,7 @@
       </div>
       <button class="btn danger" type="submit">Delete portfolio permanently</button>
     </form>
+    @endcan
   </div>
 </div>
 @endsection

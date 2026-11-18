@@ -213,14 +213,24 @@ class AdminPortfolioTest extends TestCase
             $this->{$method}($url, ['confirm_username' => 'alice', 'status' => 'archived'])->assertRedirect('/admin/login');
         }
 
-        // Even the portfolio's owner may not manage it.
-        $owner = User::factory()->create(['is_admin' => false]);
-        $this->alice->update(['user_id' => $owner->id]);
-        $this->actingAs($owner);
+        // A user who owns nothing gets nothing.
+        $this->actingAs(User::factory()->create(['is_admin' => false]));
         foreach ($routes as [$method, $url]) {
             $this->{$method}($url, ['confirm_username' => 'alice', 'status' => 'archived'])->assertForbidden();
         }
-        $this->assertSame('published', $this->alice->fresh()->status);
+
+        // The owner edits their own portfolio, but listing, creating, status and deleting stay admin-only.
+        $owner = User::factory()->create(['is_admin' => false]);
+        $this->alice->update(['user_id' => $owner->id]);
+        $this->actingAs($owner);
+        foreach ([['get', '/admin/portfolios'], ['get', '/admin/portfolios/create'], ['post', '/admin/portfolios'],
+            ['post', "/admin/portfolios/{$id}/status"], ['delete', "/admin/portfolios/{$id}"], ['post', "/admin/portfolios/{$id}/owner"]] as [$method, $url]) {
+            $this->{$method}($url, ['confirm_username' => 'alice', 'status' => 'archived'])->assertForbidden();
+        }
+        $this->get("/admin/portfolios/{$id}/edit")->assertOk()->assertDontSee('name="status"', false)->assertDontSee('Danger zone');
+        // Status/username in the update are ignored for owners.
+        $this->put("/admin/portfolios/{$id}", ['name' => 'Alice A.', 'status' => 'archived', 'username' => 'hijack'])->assertSessionHasNoErrors();
+        $this->assertSame(['Alice A.', 'published', 'alice'], [$this->alice->fresh()->name, $this->alice->fresh()->status, $this->alice->fresh()->username]);
     }
 
     public function test_first_portfolio_can_be_created_from_an_empty_install(): void

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /** Manage portfolios: identity, owner, status, SEO, template (draft → preview → publish) and template settings. */
 class PortfolioController extends Controller
@@ -77,13 +78,15 @@ class PortfolioController extends Controller
             'settingsKey' => $settingsKey,
             'settings' => $portfolio->settingsFor($settingsKey),
             'isCurrent' => (int) session(ResolveAdminPortfolio::SESSION_KEY) === $portfolio->id,
+            'owner' => $portfolio->user,
         ]);
     }
 
     public function update(Request $request, Portfolio $portfolio)
     {
         Gate::authorize('update', $portfolio);
-        $data = $this->validated($request, $portfolio);
+        // Owners edit the name, SEO and template settings; status, username and owner are admin decisions.
+        $data = $this->validated($request, $portfolio, manage: Gate::allows('manage', $portfolio));
 
         $key = $request->validate(['settings_template' => ['nullable', Rule::in(array_keys(Templates::available()))]])['settings_template'] ?? null;
         if ($key) {
@@ -95,8 +98,8 @@ class PortfolioController extends Controller
             $data['template_settings'] = $all;
         }
 
-        $renamed = $data['username'] !== $portfolio->username;
-        $portfolio->update($this->withPublishedAt($data, $portfolio));
+        $renamed = isset($data['username']) && $data['username'] !== $portfolio->username;
+        $portfolio->update(isset($data['status']) ? $this->withPublishedAt($data, $portfolio) : $data);
 
         return redirect()->route('admin.portfolios.edit', $portfolio)
             ->with('success', 'Portfolio saved.'.($renamed ? " Its public address is now {$portfolio->url()} — the old URL no longer works." : ''));
@@ -168,19 +171,49 @@ class PortfolioController extends Controller
         return back(fallback: route('admin.dashboard'))->with('success', "Now editing “{$portfolio->name}”.");
     }
 
-    private function validated(Request $request, ?Portfolio $portfolio, array $extra = []): array
+    /** Create a sign-in for this portfolio's owner, or set a new password for the existing one. */
+    public function owner(Request $request, Portfolio $portfolio)
     {
-        $request->merge(['username' => mb_strtolower(trim((string) $request->input('username')))]);
+        Gate::authorize('manage', $portfolio);
+        $owner = $portfolio->user;
+        $request->merge(['owner_phone' => User::normalizePhone($request->input('owner_phone'))]);
+        $data = $request->validate([
+            'owner_name' => [$owner ? 'exclude' : 'required', 'string', 'max:120'],
+            'owner_email' => [$owner ? 'exclude' : 'required', 'email', 'max:150', Rule::unique('users', 'email')],
+            'owner_phone' => ['nullable', 'string', 'max:40', Rule::unique('users', 'phone')->ignore($owner?->id)],
+            'password' => ['required', 'confirmed', Password::min(8)],
+        ], [], ['owner_name' => 'name', 'owner_email' => 'email', 'owner_phone' => 'phone']);
 
-        return $request->validate([
+        if ($owner) {
+            $owner->update(['password' => $data['password']] + array_filter(['phone' => $data['owner_phone']]));
+
+            return back()->with('success', "New password set for {$owner->email}.");
+        }
+        $user = User::create(['name' => $data['owner_name'], 'email' => $data['owner_email'], 'phone' => $data['owner_phone'],
+            'password' => $data['password'], 'is_admin' => false]);
+        $portfolio->update(['user_id' => $user->id]);
+
+        return back()->with('success', "Login created: {$user->email} can now sign in at ".route('login').' and edit this portfolio.');
+    }
+
+    private function validated(Request $request, ?Portfolio $portfolio, array $extra = [], bool $manage = true): array
+    {
+        $rules = [
             'name' => ['required', 'string', 'max:120'],
-            'username' => Username::rules($portfolio),
-            'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
-            'status' => ['required', Rule::in(array_keys(Portfolio::STATUSES))],
             'seo_title' => ['nullable', 'string', 'max:160'],
             'seo_description' => ['nullable', 'string', 'max:300'],
             'og_image_url' => ['nullable', 'url:http,https', 'max:255'],
-        ] + $extra);
+        ];
+        if ($manage) {
+            $request->merge(['username' => mb_strtolower(trim((string) $request->input('username')))]);
+            $rules += [
+                'username' => Username::rules($portfolio),
+                'user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+                'status' => ['required', Rule::in(array_keys(Portfolio::STATUSES))],
+            ];
+        }
+
+        return $request->validate($rules + $extra);
     }
 
     private function withPublishedAt(array $data, ?Portfolio $portfolio = null): array

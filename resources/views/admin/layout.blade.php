@@ -3,7 +3,8 @@
     $pendingProposals = \App\Models\ProposedChange::pending()->count();
     $unread = \App\Models\ContactMessage::whereNull('read_at')->whereNull('archived_at')->count();
     $currentPortfolio = \App\Support\CurrentPortfolio::get();
-    $switchable = \App\Models\Portfolio::query()->orderBy('name')->get(['id', 'name', 'username', 'status']);
+    $isAdmin = (bool) auth()->user()->is_admin; // false = a portfolio owner: same screens, own portfolio only
+    $switchable = \App\Models\Portfolio::query()->unless($isAdmin, fn ($q) => $q->where('user_id', auth()->id()))->orderBy('name')->get(['id', 'name', 'username', 'status']);
     $pendingApplications = $switchable->where('status', 'pending')->count();
 @endphp
 <!doctype html>
@@ -19,7 +20,7 @@
 <body>
 <div class="shell">
   <aside class="sidebar" aria-label="Admin navigation">
-    <a class="brand" href="{{ route('admin.dashboard') }}"><span>rs</span> Portfolio admin</a>
+    <a class="brand" href="{{ route('admin.dashboard') }}"><span>{{ $isAdmin ? 'rs' : '✎' }}</span> {{ $isAdmin ? 'Portfolio admin' : 'My portfolio' }}</a>
     @if ($currentPortfolio)
       <form class="nav-group switcher" method="post" action="{{ route('admin.portfolios.switch', $currentPortfolio) }}" data-switcher>
         @csrf
@@ -29,15 +30,19 @@
             <option value="{{ $p->id }}" data-action="{{ route('admin.portfolios.switch', $p) }}" @selected($p->id === $currentPortfolio->id)>{{ $p->name }} ({{ $p->username }})</option>
           @endforeach
         </select>
-        <noscript><a class="small" href="{{ route('admin.portfolios.index') }}">Switch from the portfolio list</a></noscript>
+        @if ($isAdmin)<noscript><a class="small" href="{{ route('admin.portfolios.index') }}">Switch from the portfolio list</a></noscript>@endif
         <a class="small switcher-url" id="portfolio-switcher-url" href="{{ $currentPortfolio->url() }}" target="_blank" rel="noopener">{{ $currentPortfolio->url() }} ↗</a>
         @unless ($currentPortfolio->isPublic())<span class="badge {{ $currentPortfolio->status }}">{{ \App\Models\Portfolio::STATUSES[$currentPortfolio->status] ?? $currentPortfolio->status }} · not public</span>@endunless
       </form>
     @endif
     <div class="nav-group">
       <a class="nav {{ $nav('admin.dashboard') }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
-      <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.index') }}">Portfolios <span class="count">{{ $switchable->count() }}</span></a>
-      <a class="nav {{ $nav('admin.applications.*') }}" href="{{ route('admin.applications.index') }}">Applications @if ($pendingApplications)<span class="count" title="Waiting for review">{{ $pendingApplications }}</span>@endif</a>
+      @if ($isAdmin)
+        <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.index') }}">Portfolios <span class="count">{{ $switchable->count() }}</span></a>
+        <a class="nav {{ $nav('admin.applications.*') }}" href="{{ route('admin.applications.index') }}">Applications @if ($pendingApplications)<span class="count" title="Waiting for review">{{ $pendingApplications }}</span>@endif</a>
+      @elseif ($currentPortfolio)
+        <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.edit', $currentPortfolio) }}">Template &amp; settings</a>
+      @endif
       <a class="nav {{ $nav('admin.analytics') }}" href="{{ route('admin.analytics') }}">Analytics</a>
       @if ($currentPortfolio)<a class="nav" href="{{ route('home') }}" target="_blank" rel="noopener">View site ↗</a>@endif
     </div>
@@ -54,8 +59,10 @@
     </div>
     <div class="nav-group">
       <p>Updates</p>
-      <a class="nav {{ $nav('admin.imports.*') }}" href="{{ route('admin.imports.index') }}">Import conversations</a>
-      <a class="nav {{ $nav('admin.proposals.*') }}" href="{{ route('admin.proposals.index') }}">Review changes @if ($pendingProposals)<span class="count">{{ $pendingProposals }}</span>@endif</a>
+      @if ($isAdmin)
+        <a class="nav {{ $nav('admin.imports.*') }}" href="{{ route('admin.imports.index') }}">Import conversations</a>
+        <a class="nav {{ $nav('admin.proposals.*') }}" href="{{ route('admin.proposals.index') }}">Review changes @if ($pendingProposals)<span class="count">{{ $pendingProposals }}</span>@endif</a>
+      @endif
       <a class="nav {{ $nav('admin.audit.*') }}" href="{{ route('admin.audit.index') }}">Audit history</a>
       <a class="nav {{ $nav('admin.messages.*') }}" href="{{ route('admin.messages.index') }}">Messages @if ($unread)<span class="count">{{ $unread }}</span>@endif</a>
     </div>

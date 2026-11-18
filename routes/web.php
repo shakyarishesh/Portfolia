@@ -44,27 +44,30 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/admin/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin', ResolveAdminPortfolio::class])->group(function () {
+// The portal: admins manage every portfolio; a portfolio owner signs in to the same screens for their own portfolio only
+// (content is scoped by ResolveAdminPortfolio + PortfolioPolicy). Routes marked `can:admin` are admin-only.
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:portal', ResolveAdminPortfolio::class])->group(function () {
     Route::get('/', Admin\DashboardController::class)->name('dashboard');
 
     // Portfolio management (multi-portfolio). Content screens below edit the portfolio selected here.
-    Route::get('/portfolios', [Admin\PortfolioController::class, 'index'])->name('portfolios.index');
-    Route::get('/portfolios/create', [Admin\PortfolioController::class, 'create'])->name('portfolios.create');
-    Route::post('/portfolios', [Admin\PortfolioController::class, 'store'])->name('portfolios.store');
+    Route::get('/portfolios', [Admin\PortfolioController::class, 'index'])->name('portfolios.index')->middleware('can:admin');
+    Route::get('/portfolios/create', [Admin\PortfolioController::class, 'create'])->name('portfolios.create')->middleware('can:admin');
+    Route::post('/portfolios', [Admin\PortfolioController::class, 'store'])->name('portfolios.store')->middleware('can:admin');
     Route::get('/portfolios/{portfolio}/edit', [Admin\PortfolioController::class, 'edit'])->name('portfolios.edit');
     Route::put('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'update'])->name('portfolios.update');
-    Route::post('/portfolios/{portfolio}/status', [Admin\PortfolioController::class, 'status'])->name('portfolios.status');
+    Route::post('/portfolios/{portfolio}/status', [Admin\PortfolioController::class, 'status'])->name('portfolios.status')->middleware('can:admin');
     Route::post('/portfolios/{portfolio}/template', [Admin\PortfolioController::class, 'template'])->name('portfolios.template');
     Route::post('/portfolios/{portfolio}/template/publish', [Admin\PortfolioController::class, 'publishTemplate'])->name('portfolios.template.publish');
-    Route::delete('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'destroy'])->name('portfolios.destroy');
+    Route::post('/portfolios/{portfolio}/owner', [Admin\PortfolioController::class, 'owner'])->name('portfolios.owner')->middleware('can:admin');
+    Route::delete('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'destroy'])->name('portfolios.destroy')->middleware('can:admin');
     Route::post('/portfolios/{portfolio}/switch', [Admin\PortfolioController::class, 'switch'])->name('portfolios.switch');
     Route::get('/portfolios/{portfolio}/preview', [PreviewController::class, 'start'])->name('portfolios.preview');
     Route::post('/portfolios/{portfolio}/preview/exit', [PreviewController::class, 'exit'])->name('portfolios.preview.exit');
 
-    Route::get('/applications', [Admin\ApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/applications/{portfolio}', [Admin\ApplicationController::class, 'show'])->name('applications.show');
-    Route::post('/applications/{portfolio}/approve', [Admin\ApplicationController::class, 'approve'])->name('applications.approve');
-    Route::post('/applications/{portfolio}/reject', [Admin\ApplicationController::class, 'reject'])->name('applications.reject');
+    Route::get('/applications', [Admin\ApplicationController::class, 'index'])->name('applications.index')->middleware('can:admin');
+    Route::get('/applications/{portfolio}', [Admin\ApplicationController::class, 'show'])->name('applications.show')->middleware('can:admin');
+    Route::post('/applications/{portfolio}/approve', [Admin\ApplicationController::class, 'approve'])->name('applications.approve')->middleware('can:admin');
+    Route::post('/applications/{portfolio}/reject', [Admin\ApplicationController::class, 'reject'])->name('applications.reject')->middleware('can:admin');
 
     Route::get('/profile', [Admin\ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
@@ -91,21 +94,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:admin', Resolve
     Route::delete('/messages/{message}', [Admin\MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/{message}/state', [Admin\MessageController::class, 'state'])->name('messages.state');
 
-    Route::get('/imports', [Admin\ImportController::class, 'index'])->name('imports.index');
-    Route::post('/imports', [Admin\ImportController::class, 'store'])->name('imports.store');
-    Route::get('/imports/{import}', [Admin\ImportController::class, 'show'])->name('imports.show');
-    Route::delete('/imports/{import}', [Admin\ImportController::class, 'destroy'])->name('imports.destroy');
-    Route::post('/imports/{import}/ai', [Admin\ImportController::class, 'runAi'])->name('imports.ai');
-    Route::get('/imports/{import}/conversations/{conversation}', [Admin\ImportController::class, 'conversation'])->name('imports.conversation');
+    Route::get('/imports', [Admin\ImportController::class, 'index'])->name('imports.index')->middleware('can:admin');
+    Route::post('/imports', [Admin\ImportController::class, 'store'])->name('imports.store')->middleware('can:admin');
+    Route::get('/imports/{import}', [Admin\ImportController::class, 'show'])->name('imports.show')->middleware('can:admin');
+    Route::delete('/imports/{import}', [Admin\ImportController::class, 'destroy'])->name('imports.destroy')->middleware('can:admin');
+    Route::post('/imports/{import}/ai', [Admin\ImportController::class, 'runAi'])->name('imports.ai')->middleware('can:admin');
+    Route::get('/imports/{import}/conversations/{conversation}', [Admin\ImportController::class, 'conversation'])->name('imports.conversation')->middleware('can:admin');
 
-    Route::get('/proposals', [Admin\ProposalController::class, 'index'])->name('proposals.index');
-    Route::get('/proposals/new', [Admin\ProposalController::class, 'create'])->name('proposals.create');
-    Route::post('/proposals', [Admin\ProposalController::class, 'store'])->name('proposals.store');
-    Route::post('/proposals/dismiss-duplicates', [Admin\ProposalController::class, 'dismissDuplicates'])->name('proposals.dismiss-duplicates');
-    Route::get('/proposals/{proposal}/edit', [Admin\ProposalController::class, 'edit'])->name('proposals.edit');
-    Route::put('/proposals/{proposal}', [Admin\ProposalController::class, 'update'])->name('proposals.update');
-    Route::post('/proposals/{proposal}/approve', [Admin\ProposalController::class, 'approve'])->name('proposals.approve');
-    Route::post('/proposals/{proposal}/reject', [Admin\ProposalController::class, 'reject'])->name('proposals.reject');
+    Route::get('/proposals', [Admin\ProposalController::class, 'index'])->name('proposals.index')->middleware('can:admin');
+    Route::get('/proposals/new', [Admin\ProposalController::class, 'create'])->name('proposals.create')->middleware('can:admin');
+    Route::post('/proposals', [Admin\ProposalController::class, 'store'])->name('proposals.store')->middleware('can:admin');
+    Route::post('/proposals/dismiss-duplicates', [Admin\ProposalController::class, 'dismissDuplicates'])->name('proposals.dismiss-duplicates')->middleware('can:admin');
+    Route::get('/proposals/{proposal}/edit', [Admin\ProposalController::class, 'edit'])->name('proposals.edit')->middleware('can:admin');
+    Route::put('/proposals/{proposal}', [Admin\ProposalController::class, 'update'])->name('proposals.update')->middleware('can:admin');
+    Route::post('/proposals/{proposal}/approve', [Admin\ProposalController::class, 'approve'])->name('proposals.approve')->middleware('can:admin');
+    Route::post('/proposals/{proposal}/reject', [Admin\ProposalController::class, 'reject'])->name('proposals.reject')->middleware('can:admin');
 
     Route::get('/audit', [Admin\AuditController::class, 'index'])->name('audit.index');
     Route::post('/audit/{log}/restore', [Admin\AuditController::class, 'restore'])->name('audit.restore');

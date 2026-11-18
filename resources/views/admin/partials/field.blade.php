@@ -27,7 +27,7 @@
         </select>
         @break
       @default
-        @php $htmlType = ['url' => 'url', 'email' => 'email', 'date' => 'date', 'datetime' => 'datetime-local', 'number' => 'number'][$field['type']] ?? 'text'; @endphp
+        @php $htmlType = ['url' => 'url', 'email' => 'email', 'password' => 'password', 'date' => 'date', 'datetime' => 'datetime-local', 'number' => 'number'][$field['type']] ?? 'text'; @endphp
         <input type="{{ $htmlType }}" id="{{ $id }}" name="{{ $inputName }}" value="{{ is_array($old) ? implode(', ', $old) : $old }}" @required($required) @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif @error($errorKey) aria-invalid="true" @enderror>
     @endswitch
   @endif
