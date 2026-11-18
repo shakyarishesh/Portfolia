@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
   <title>Sign in · Portfolio admin</title>
-  <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}">
+  <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}">@include('admin.partials.theme-init')
   <script src="{{ asset('admin-assets/admin.js') }}" defer></script>
 </head>
 <body>

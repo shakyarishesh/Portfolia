@@ -13,7 +13,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>@yield('title', 'Admin') · Portfolio admin</title>
-  <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}?v={{ filemtime(public_path('admin-assets/admin.css')) }}">
+  <link rel="stylesheet" href="{{ asset('admin-assets/admin.css') }}?v={{ filemtime(public_path('admin-assets/admin.css')) }}">@include('admin.partials.theme-init')
   <script src="{{ asset('admin-assets/admin.js') }}?v={{ filemtime(public_path('admin-assets/admin.js')) }}" defer></script>
 </head>
 <body>
@@ -58,6 +58,9 @@
       <a class="nav {{ $nav('admin.proposals.*') }}" href="{{ route('admin.proposals.index') }}">Review changes @if ($pendingProposals)<span class="count">{{ $pendingProposals }}</span>@endif</a>
       <a class="nav {{ $nav('admin.audit.*') }}" href="{{ route('admin.audit.index') }}">Audit history</a>
       <a class="nav {{ $nav('admin.messages.*') }}" href="{{ route('admin.messages.index') }}">Messages @if ($unread)<span class="count">{{ $unread }}</span>@endif</a>
+    </div>
+    <div class="nav-group">
+      <button type="button" class="btn sm theme-toggle" data-theme-toggle aria-pressed="false">Dark mode <span data-icon aria-hidden="true"></span></button>
     </div>
     <form method="post" action="{{ route('logout') }}" class="nav-group">
       @csrf

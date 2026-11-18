@@ -57,3 +57,18 @@ document.querySelectorAll('[data-confirm-text]').forEach(input => {
   input.addEventListener('input', sync);
   sync();
 });
+
+// Dark mode switch: flips the current look (system or saved) and remembers it; see partials/theme-init.
+const themeToggle = document.querySelector('[data-theme-toggle]');
+if (themeToggle) {
+  const root = document.documentElement;
+  const isDark = () => (root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+  const sync = () => themeToggle.setAttribute('aria-pressed', String(isDark()));
+  themeToggle.addEventListener('click', () => {
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem('admin-theme', root.dataset.theme); } catch (e) {}
+    sync();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+  sync();
+}
