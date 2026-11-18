@@ -106,7 +106,7 @@ class ApplicationController extends Controller
     public function template()
     {
         $out = [
-            '# '.config('app.name').' — portfolio details',
+            '# '.config('portfolio.platform_name').' — portfolio details',
             '#',
             '# How to use this file:',
             "#  1. Write your answers after the colons. Leave anything you don't need empty.",

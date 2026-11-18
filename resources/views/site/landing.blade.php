@@ -1,6 +1,6 @@
 @extends('site.layout')
 
-@section('title', config('app.name').' — your own portfolio website')
+@section('title', config('portfolio.platform_name').' — your own portfolio website')
 @section('description', 'Get your own portfolio website at '.url('/').'/your-username. Pick a template, send your details, and we publish it after a quick review. Try the demo first — nothing is saved.')
 
 @push('head')

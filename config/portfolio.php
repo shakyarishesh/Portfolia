@@ -2,6 +2,9 @@
 
 return [
 
+    // Name of the platform itself (landing page, /create, demo) — not a person's portfolio.
+    'platform_name' => env('PLATFORM_NAME', 'Portfolia'),
+
     // Portfolio served at "/" (legacy single-site URL). Empty = the oldest published portfolio.
     'default_username' => env('PORTFOLIO_DEFAULT_USERNAME'),
 

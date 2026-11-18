@@ -1,5 +1,5 @@
 @extends('site.layout')
-@section('title', 'Application received · '.config('app.name'))
+@section('title', 'Application received · '.config('portfolio.platform_name'))
 @section('content')
 <div class="wrap apply">
   <h1>Thanks — your portfolio is on its way</h1>

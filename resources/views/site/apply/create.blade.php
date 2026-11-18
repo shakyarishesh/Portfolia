@@ -1,5 +1,5 @@
 @extends('site.layout')
-@section('title', 'Create your portfolio · '.config('app.name'))
+@section('title', 'Create your portfolio · '.config('portfolio.platform_name'))
 @section('description', 'Fill in your details once and get a portfolio website at your own address after a quick review.')
 @push('head')
   <link rel="stylesheet" href="{{ asset('site/apply.css') }}?v={{ filemtime(public_path('site/apply.css')) }}">

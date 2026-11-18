@@ -7,11 +7,11 @@
 .apply [aria-invalid=true] { border-color: var(--danger); }
 .hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
-.error-summary { border: 2px solid var(--danger); border-radius: var(--radius); background: #fef2f2; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.error-summary { border: 2px solid var(--danger); border-radius: var(--radius); background: var(--bad-soft); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
 .error-summary h2 { margin: 0 0 .5rem; font-size: 1.1rem; color: var(--danger); }
 
 .url-input { display: flex; align-items: stretch; }
-.url-input span { display: flex; align-items: center; padding: 0 .6rem; border: 1px solid #a8a29e; border-right: 0; border-radius: 6px 0 0 6px; background: var(--bg); color: var(--muted); white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
+.url-input span { display: flex; align-items: center; padding: 0 .6rem; border: 1px solid var(--input-border); border-right: 0; border-radius: 6px 0 0 6px; background: var(--bg); color: var(--muted); white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
 .url-input input { flex: 1 1 8rem; width: auto; min-width: 0; border-radius: 0 6px 6px 0; }
 
 fieldset.templates { border: 0; padding: 0; margin: 0; }
@@ -21,7 +21,7 @@ fieldset.templates { border: 0; padding: 0; margin: 0; }
 .template-choice img { border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
 .template-choice .template-name { font-weight: 700; }
 .template-choice .help { font-size: .85rem; color: var(--muted); }
-.template-choice:has(input:checked) { border-color: var(--accent); background: #eef2ff; }
+.template-choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 .template-choice:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
 
 .repeat-rows { counter-reset: row; }
@@ -36,11 +36,11 @@ fieldset.templates { border: 0; padding: 0; margin: 0; }
 .submit p { color: var(--muted); max-width: 65ch; }
 
 /* Offline template: download, fill in, upload to pre-fill the form. */
-.import-box { border: 1px dashed var(--accent); border-radius: var(--radius); background: #eef2ff; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.import-box { border: 1px dashed var(--accent); border-radius: var(--radius); background: var(--accent-soft); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
 .import-box h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
 .import-box ol { margin: 0 0 1rem; padding-left: 1.25rem; }
 .import-form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .import-form label { margin: 0; }
 .import-form input { flex: 1 1 14rem; width: auto; background: var(--surface); }
-.import-warnings { margin-top: 1rem; border-left: 4px solid #d97706; background: #fffbeb; padding: .5rem 1rem; }
+.import-warnings { margin-top: 1rem; border-left: 4px solid var(--warn); background: var(--warn-soft); padding: .5rem 1rem; }
 .import-warnings p { margin: 0; font-weight: 600; }
