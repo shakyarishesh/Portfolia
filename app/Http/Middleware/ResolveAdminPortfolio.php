@@ -6,6 +6,7 @@ use App\Models\Portfolio;
 use App\Support\CurrentPortfolio;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -24,7 +25,8 @@ class ResolveAdminPortfolio
 
         if (! $portfolio) {
             // Nothing to edit yet: only portfolio management makes sense.
-            if (! $request->routeIs('admin.portfolios.*')) {
+            // Non-admins fall through so `can:admin` (which runs after this middleware) still answers 403.
+            if (! $request->routeIs('admin.portfolios.*') && Gate::allows('admin')) {
                 return redirect()->route('admin.portfolios.create')->with('success', 'Create a portfolio first.');
             }
         } else {
