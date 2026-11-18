@@ -28,11 +28,11 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_wrong_password_and_non_admins_are_rejected(): void
+    public function test_wrong_password_and_users_without_a_portfolio_are_rejected(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
 
-        $this->post('/admin/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('email');
+        $this->post('/admin/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('login');
         $this->assertGuest();
 
         $this->actingAs($user)->get('/admin')->assertForbidden();

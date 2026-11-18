@@ -57,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         Gate::define('admin', fn (User $user) => $user->is_admin);
+        // The admin portal: admins see everything, portfolio owners only their own portfolio(s).
+        Gate::define('portal', fn (User $user) => $user->is_admin || $user->portfolios()->exists());
         Gate::policy(Portfolio::class, PortfolioPolicy::class);
 
         // /{username}/…: resolve once, enforce visibility, make it the current portfolio for scoping and URLs.
@@ -74,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
             return $portfolio;
         });
 
-        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()));
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by(mb_strtolower((string) $request->input('login', $request->input('email'))).'|'.$request->ip()));
         RateLimiter::for('contact', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('applications', fn (Request $request) => Limit::perHour(3)->by($request->ip()));
         RateLimiter::for('demo-api', fn (Request $request) => Limit::perMinute(30)->by($request->ip()));
