@@ -8,7 +8,9 @@
 <html lang="en">
 <head>
   @include('portfolio.partials.head', ['canonical' => route('home')])
-  <script>try { if (!localStorage.getItem('seenIntro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro'); } catch (e) {}</script>
+  @if (($settings['intro'] ?? true) && empty($demo))
+  <script>try { if (!localStorage.getItem(@json('seenIntro:'.$portfolio->username)) && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro'); } catch (e) {}</script>
+  @endif
   <script type="application/ld+json">{!! json_encode(array_filter([
       '@context' => 'https://schema.org',
       '@type' => 'Person',
@@ -27,7 +29,7 @@
 <body>
   @include('portfolios.partials.preview-banner')
   <a class="skip" href="#{{ $sections->first()->key }}">Skip to content</a>
-  <div class="intro-screen" aria-hidden="true"><span></span></div>
+  <div class="intro-screen" aria-hidden="true" data-words="{{ json_encode(\App\Support\Templates::introWords($settings ?? [])) }}" data-seen-key="seenIntro:{{ $portfolio->username }}"><span></span></div>
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><div class="grid"></div></div>
   <div class="cursor-glow" aria-hidden="true"></div>
   <div class="cursor-ring" aria-hidden="true"></div>

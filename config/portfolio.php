@@ -132,6 +132,15 @@ return [
         ],
     ],
 
+    // Settings every template has, edited with the template's own settings but stored once per portfolio
+    // (template_settings._shared) so they survive a template switch.
+    'shared_settings' => [
+        'intro' => ['type' => 'boolean', 'label' => 'Welcome intro: "welcome" in several languages on a visitor\'s first visit', 'default' => true],
+        'intro_words' => ['type' => 'textarea', 'label' => 'Welcome words, one per line (blank = नमस्ते, Bienvenido, Bienvenue … Welcome)', 'max' => 600, 'default' => null],
+    ],
+    // Default welcome words, shown in this order (the last one stays until the screen lifts).
+    'intro_words' => ['नमस्ते', 'Bienvenido', 'Bienvenue', 'Willkommen', 'Benvenuto', 'ようこそ', '환영합니다', '欢迎', 'Bem-vindo', 'Welcome'],
+
     'uploads' => [
         'image_max_kb' => (int) env('PORTFOLIO_IMAGE_MAX_KB', 4096),
         'resume_max_kb' => (int) env('PORTFOLIO_RESUME_MAX_KB', 10240),

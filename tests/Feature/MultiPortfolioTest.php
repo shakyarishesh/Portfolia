@@ -189,7 +189,7 @@ class MultiPortfolioTest extends TestCase
         $this->assertSame('portfolios.templates.minimal_editorial.home', Templates::view('minimal_editorial', 'home'));
         $this->alice->update(['template' => 'nope', 'template_settings' => ['minimal_editorial' => ['accent' => '<script>', 'evil' => 'x']]]);
         $this->get('/alice')->assertOk(); // unknown template falls back to classic
-        $this->assertSame(['accent' => 'teal', 'theme' => 'dark', 'show_thumbnails' => true], $this->alice->settingsFor('minimal_editorial'));
+        $this->assertSame(['accent' => 'teal', 'theme' => 'dark', 'show_thumbnails' => true, 'intro' => true, 'intro_words' => null], $this->alice->settingsFor('minimal_editorial'));
     }
 
     public function test_content_writes_without_a_current_portfolio_are_refused(): void

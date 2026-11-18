@@ -17,6 +17,7 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.intro')
   <a class="skip" href="#main">Skip to content</a>
   <header class="top">
     <a class="brand" href="{{ route('home') }}"><span class="mark" aria-hidden="true">{{ $initials }}</span><span class="brand-name">{{ $profile->full_name }}</span></a>

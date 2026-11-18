@@ -232,7 +232,8 @@ document.fonts?.ready.then(syncNav);
 // first visit: "welcome" in many languages, starting with Nepali, then the screen lifts
 if (root.classList.contains('intro')) {
   const screen = document.querySelector('.intro-screen'), word = screen.firstElementChild;
-  const hellos = ['नमस्ते', 'Bienvenido', 'Bienvenue', 'Willkommen', 'Benvenuto', 'ようこそ', '환영합니다', '欢迎', 'Bem-vindo', 'Welcome'];
+  // words come from the portfolio's "Welcome words" setting (config portfolio.intro_words by default)
+  const hellos = JSON.parse(screen.dataset.words || '["Welcome"]');
   const FIRST = 1300, STEP = 280, LAST = 700;
   busy = true;
   hellos.forEach((w, i) => setTimeout(() => {
@@ -244,9 +245,9 @@ if (root.classList.contains('intro')) {
   setTimeout(() => {
     screen.classList.add('done');
     replay(panels[idx]);
-    try { localStorage.setItem('seenIntro', '1'); } catch (e) {}
+    try { localStorage.setItem(screen.dataset.seenKey, '1'); } catch (e) {}
     setTimeout(() => { root.classList.remove('intro'); busy = false; }, 900);
-  }, FIRST + (hellos.length - 2) * STEP + LAST);
+  }, FIRST + Math.max(0, hellos.length - 2) * STEP + LAST);
 }
 
 

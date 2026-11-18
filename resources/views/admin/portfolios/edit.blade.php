@@ -8,7 +8,7 @@
   <a class="btn" href="{{ route('admin.portfolios.preview', $portfolio) }}" target="_blank" rel="noopener">Preview ↗</a>
 @endsection
 @section('content')
-@php $settingsSchema = $templates[$settingsKey]['settings'] ?? []; @endphp
+@php $settingsSchema = \App\Support\Templates::fields($settingsKey); @endphp
 <div class="split">
   <div class="stack">
     @if ($portfolio->draft_template && isset($templates[$portfolio->draft_template]))
@@ -36,7 +36,7 @@
                 'field' => ['type' => $field['type'] === 'boolean' ? 'checkbox' : $field['type'], 'label' => $field['label'], 'options' => $field['options'] ?? [], 'placeholder' => 'Default', 'rows' => 4]])
           @endforeach
         </div>
-        <p class="small muted">Saved per template — settings you chose for other templates are kept.</p>
+        <p class="small muted">Saved per template — settings you chose for other templates are kept. The welcome intro settings are shared by every template.</p>
       @else
         <p class="small muted">This template has no extra settings.</p>
       @endif

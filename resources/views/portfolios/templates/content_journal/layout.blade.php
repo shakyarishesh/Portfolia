@@ -19,6 +19,7 @@
 </head>
 <body class="cj" data-template="content_journal">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.intro')
   <a class="cj-skip" href="#main">Skip to content</a>
   <header class="cj-top">
     <nav class="cj-nav" aria-label="Main">

@@ -87,7 +87,10 @@ class Portfolio extends Model
     {
         $template ??= $this->template;
 
-        return Templates::settings($template, (array) ($this->template_settings[$template] ?? []));
+        $all = (array) $this->template_settings;
+
+        // Shared settings (welcome intro …) are stored once for every template.
+        return Templates::settings($template, (array) ($all['_shared'] ?? []) + (array) ($all[$template] ?? []));
     }
 
     /** Create a portfolio with an empty profile and the default sections, so it renders immediately. */

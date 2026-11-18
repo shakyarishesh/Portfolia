@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Support\Templates;
 use App\Support\Username;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -88,7 +89,9 @@ class PortfolioController extends Controller
         if ($key) {
             $settings = $request->validate(Templates::rules($key))['settings'] ?? [];
             $all = (array) $portfolio->template_settings;
-            $all[$key] = Templates::clean($key, $settings); // other templates' saved settings stay as they are
+            $clean = Templates::clean($key, $settings);
+            $all['_shared'] = Arr::only($clean, Templates::sharedKeys()); // same for every template
+            $all[$key] = Arr::except($clean, Templates::sharedKeys()); // other templates' saved settings stay as they are
             $data['template_settings'] = $all;
         }
 
