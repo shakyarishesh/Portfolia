@@ -155,6 +155,30 @@ td.actions > * { margin-left: 4px; }
 .meter-list span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meter-list i { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--w), var(--surface-2) var(--w)); }
 
+/* portfolios: sidebar switcher, template cards */
+.switcher { display: grid; gap: 6px; padding: 0 4px; }
+.switcher p { padding: 0 6px; }
+.switcher select { font-size: .88rem; padding: 7px 9px; }
+.switcher-url { padding: 0 6px; overflow-wrap: anywhere; }
+.switcher .badge { justify-self: start; margin-left: 6px; }
+.badge.archived, .badge.disabled { background: var(--bad-soft); color: var(--bad); }
+fieldset.card { min-width: 0; }
+fieldset.card legend { float: left; width: 100%; padding: 0; }
+.template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; clear: both; }
+.template-card { position: relative; display: flex; flex-direction: column; border: 2px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+.template-card img { display: block; width: 100%; height: auto; aspect-ratio: 16/10; object-fit: cover; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.template-card-body { padding: 12px 14px 4px; flex: 1; }
+.template-card h3 { margin: 0 0 4px; font-size: 1rem; }
+.template-card-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 14px 14px; }
+.template-card.live { border-color: var(--ok); }
+.template-card.draft { border-color: var(--warn); }
+.template-card.selectable { cursor: pointer; }
+.template-card.selectable input { position: absolute; top: 10px; left: 10px; width: 18px; height: 18px; accent-color: var(--accent); }
+.template-card.selectable:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.template-card.selectable:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.draft-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.draft-bar .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
 @media (max-width: 1000px) {
   .split { grid-template-columns: 1fr; }
   .grid.cols-4, .grid.cols-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

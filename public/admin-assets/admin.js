@@ -33,3 +33,27 @@ document.querySelectorAll('[data-mode-switch]').forEach(group => {
   group.addEventListener('change', sync);
   sync();
 });
+
+// Sidebar portfolio switcher: post to the chosen portfolio's switch URL.
+document.querySelectorAll('[data-switcher]').forEach(form => {
+  form.querySelector('select').addEventListener('change', e => {
+    form.action = e.target.selectedOptions[0].dataset.action;
+    form.submit();
+  });
+});
+
+// "Mobile" preview: open the public page in a phone-sized window.
+document.addEventListener('click', e => {
+  const link = e.target.closest('[data-popup]');
+  if (!link) return;
+  const [w, h] = link.dataset.popup.split('x');
+  if (window.open(link.href, 'portfolio-preview-' + w, `width=${w},height=${h}`)) e.preventDefault();
+});
+
+// Delete confirmation: enable the button only once the username is typed exactly.
+document.querySelectorAll('[data-confirm-text]').forEach(input => {
+  const button = input.form.querySelector('[type=submit]');
+  const sync = () => button.disabled = input.value.trim() !== input.dataset.confirmText;
+  input.addEventListener('input', sync);
+  sync();
+});

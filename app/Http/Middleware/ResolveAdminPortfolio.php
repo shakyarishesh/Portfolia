@@ -23,8 +23,8 @@ class ResolveAdminPortfolio
         $portfolio = ($id ? Portfolio::query()->find($id) : null) ?? Portfolio::query()->orderBy('id')->first();
 
         if (! $portfolio) {
-            // Nothing to edit yet: only the dashboard and portfolio management make sense.
-            if (! $request->routeIs('admin.portfolios.*', 'admin.dashboard')) {
+            // Nothing to edit yet: only portfolio management makes sense.
+            if (! $request->routeIs('admin.portfolios.*')) {
                 return redirect()->route('admin.portfolios.create')->with('success', 'Create a portfolio first.');
             }
         } else {
