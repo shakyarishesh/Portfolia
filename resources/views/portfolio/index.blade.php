@@ -28,12 +28,15 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   <a class="skip" href="#{{ $sections->first()->key }}">Skip to content</a>
   <div class="intro-screen" aria-hidden="true" data-words="{{ json_encode(\App\Support\Templates::introWords($settings ?? [])) }}" data-seen-key="seenIntro:{{ $portfolio->username }}"><span></span></div>
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><div class="grid"></div></div>
+  @if (($settings['cursor'] ?? null) === 'ring')
   <div class="cursor-glow" aria-hidden="true"></div>
   <div class="cursor-ring" aria-hidden="true"></div>
   <div class="cursor-dot" aria-hidden="true"></div>
+  @endif
 
   <header class="nav">
     <a class="logo" href="#{{ $sections->first()->key }}" data-tab="{{ $sections->first()->key }}" aria-label="{{ $profile->full_name }} — home">{{ Str::lower(collect($names)->map(fn ($n) => Str::substr($n, 0, 1))->implode('')) }}<span>.</span></a>

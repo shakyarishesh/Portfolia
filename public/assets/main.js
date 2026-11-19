@@ -148,12 +148,12 @@ toggle.addEventListener('click', () => {
   ));
 });
 
-// cursor: dot, lagging ring, glow, click burst; card tilt + spotlight, magnetic buttons
+// cursor (only when the "Neon ring & dot" cursor setting renders these elements): dot, lagging ring, glow, click burst
 const glow = document.querySelector('.cursor-glow');
 const ring = document.querySelector('.cursor-ring');
 const dot = document.querySelector('.cursor-dot');
 const fine = matchMedia('(pointer: fine)').matches;
-if (fine) {
+if (fine && ring) {
   root.classList.add('fx-cursor', 'cursor-out');
   let mx = -999, my = -999, rx = mx, ry = my, gx = mx, gy = my;
   addEventListener('mousemove', e => {
@@ -180,6 +180,9 @@ if (fine) {
     document.body.append(b);
   });
   addEventListener('mouseup', () => ring.classList.remove('down'));
+}
+// card tilt + spotlight, magnetic buttons
+if (fine) {
   document.querySelectorAll('.tilt').forEach(el => {
     el.addEventListener('mousemove', e => {
       const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
