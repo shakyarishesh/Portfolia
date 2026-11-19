@@ -20,6 +20,7 @@
 </head>
 <body class="gd-body page-{{ $page }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @include('portfolios.partials.intro')
   <a class="gd-skip" href="#content">Skip to content</a>
 

@@ -94,7 +94,7 @@ class CreativeExperienceTemplateTest extends TestCase
     {
         $this->use(['palette' => 'mono', 'hero' => 'none', 'motion' => true]);
         $this->get('/rishesh')->assertOk()->assertSee('data-palette="mono" data-hero="none"', false)
-            ->assertDontSee('<canvas', false)->assertSee('class="hero-art"', false);
+            ->assertDontSee('class="hero-canvas"', false)->assertSee('class="hero-art"', false);
 
         $this->use(['palette' => 'sunset', 'hero' => 'orbits', 'motion' => true]);
         $this->get('/rishesh')->assertOk()->assertSee('data-hero="orbits"', false)
@@ -102,7 +102,7 @@ class CreativeExperienceTemplateTest extends TestCase
             ->assertSee('<ul class="orbit-static"', false);
 
         $this->use(['palette' => 'sunset', 'hero' => 'particles', 'motion' => false]);
-        $this->get('/rishesh')->assertOk()->assertSee('data-motion="off"', false)->assertDontSee('<canvas', false);
+        $this->get('/rishesh')->assertOk()->assertSee('data-motion="off"', false)->assertDontSee('class="hero-canvas"', false);
 
         // Unknown values fall back to defaults (allow-listed by the registry).
         $this->use(['palette' => '"><script>', 'hero' => 'webgl']);

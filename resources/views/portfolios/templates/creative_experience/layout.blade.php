@@ -17,6 +17,7 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @include('portfolios.partials.intro')
   <a class="skip" href="#main">Skip to content</a>
   <header class="top">

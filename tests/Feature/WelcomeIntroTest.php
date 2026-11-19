@@ -40,7 +40,7 @@ class WelcomeIntroTest extends TestCase
             ->assertSessionHasNoErrors();
 
         $saved = $portfolio->fresh()->template_settings;
-        $this->assertSame(['intro' => true, 'intro_words' => "Hola\n\n  Namaste  \n</script><b>x"], $saved['_shared']);
+        $this->assertEquals(['intro' => true, 'intro_words' => "Hola\n\n  Namaste  \n</script><b>x", 'cursor' => 'none', 'cursor_color' => 'electric'], $saved['_shared']);
         $this->assertEquals(['gradient' => 'teal_blue', 'shapes' => false], $saved['gradient']);
         // Another template sees the same intro settings.
         $this->assertSame(['Hola', 'Namaste', '</script><b>x'], Templates::introWords($portfolio->fresh()->settingsFor('professional')));

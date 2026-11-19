@@ -27,6 +27,7 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @if ($preview)
     <div class="preview-bar" role="status">Preview — status: <b>{{ $project->status }}</b>. <a href="{{ route('admin.resources.edit', ['projects', $project->id]) }}">Back to editor</a></div>
   @endif

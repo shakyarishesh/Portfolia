@@ -75,7 +75,12 @@ final class Templates
     /** Settings schema of a template: its own settings plus the ones every template shares (config portfolio.shared_settings). */
     public static function fields(string $key): array
     {
-        return (self::meta($key)['settings'] ?? []) + config('portfolio.shared_settings', []);
+        $shared = config('portfolio.shared_settings', []);
+        foreach (self::meta($key)['shared_defaults'] ?? [] as $name => $default) {
+            $shared[$name]['default'] = $default; // e.g. classic starts with the cursor trail on
+        }
+
+        return (self::meta($key)['settings'] ?? []) + $shared;
     }
 
     /** @return list<string> names of the shared settings (stored under template_settings._shared) */

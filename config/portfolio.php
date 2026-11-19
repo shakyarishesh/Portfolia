@@ -22,6 +22,7 @@ return [
             'version' => 1,
             'sections' => ['home', 'experience', 'projects', 'skills', 'education', 'contact', 'blog'],
             'settings' => [],
+            'shared_defaults' => ['cursor' => 'trail'],
         ],
         'minimal_editorial' => [
             'name' => 'Minimal Editorial',
@@ -71,6 +72,7 @@ return [
                     'options' => ['particles' => 'Particle field', 'orbits' => 'Orbiting skills', 'none' => 'Static']],
                 'motion' => ['type' => 'boolean', 'label' => 'Enable motion effects', 'default' => true],
             ],
+            'shared_defaults' => ['cursor' => 'trail'],
         ],
         'professional' => [
             'name' => 'Professional',
@@ -137,6 +139,11 @@ return [
     'shared_settings' => [
         'intro' => ['type' => 'boolean', 'label' => 'Welcome intro: "welcome" in several languages on a visitor\'s first visit', 'default' => true],
         'intro_words' => ['type' => 'textarea', 'label' => 'Welcome words, one per line (blank = नमस्ते, Bienvenido, Bienvenue … Welcome)', 'max' => 600, 'default' => null],
+        // Templates can change these defaults with 'shared_defaults'.
+        'cursor' => ['type' => 'select', 'label' => 'Cursor effect (mouse and trackpad only)', 'default' => 'none',
+            'options' => ['trail' => 'Glowing trail', 'ring' => 'Neon ring & dot (Classic template only)', 'none' => 'Off']],
+        'cursor_color' => ['type' => 'select', 'label' => 'Cursor trail colour', 'default' => 'electric',
+            'options' => ['electric' => 'Electric blue', 'violet' => 'Violet', 'pink' => 'Pink', 'green' => 'Green', 'amber' => 'Amber']],
     ],
     // Default welcome words, shown in this order (the last one stays until the screen lifts).
     'intro_words' => ['नमस्ते', 'Bienvenido', 'Bienvenue', 'Willkommen', 'Benvenuto', 'ようこそ', '환영합니다', '欢迎', 'Bem-vindo', 'Welcome'],

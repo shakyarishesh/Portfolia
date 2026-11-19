@@ -12,6 +12,7 @@
 </head>
 <body class="page-{{ $page ?? 'home' }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @include('portfolios.partials.intro')
   <a class="mp-skip" href="#content">Skip to content</a>
 

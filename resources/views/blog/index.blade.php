@@ -12,6 +12,7 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap">
