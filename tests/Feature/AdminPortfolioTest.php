@@ -199,6 +199,23 @@ class AdminPortfolioTest extends TestCase
         $this->get('/admin/sections')->assertOk();
     }
 
+    public function test_switching_lands_on_the_new_portfolios_page_not_the_old_one(): void
+    {
+        $this->admin();
+        $project = \App\Models\Project::withoutGlobalScopes()->create(['portfolio_id' => $this->alice->id, 'name' => 'A', 'slug' => 'a', 'status' => 'published']);
+        $cases = [
+            "/admin/portfolios/{$this->alice->id}/edit" => "/admin/portfolios/{$this->bob->id}/edit", // settings page follows the switch
+            "/admin/projects/{$project->id}/edit" => '/admin/projects', // a record of the old portfolio → its list
+            '/admin/profile' => '/admin/profile', // "current portfolio" screens just reload
+            '/admin/projects' => '/admin/projects',
+            '/alice' => '/admin', // not an admin page
+        ];
+        foreach ($cases as $from => $to) {
+            $this->from($from)->post("/admin/portfolios/{$this->bob->id}/switch")->assertRedirect($to);
+        }
+        $this->get("/admin/portfolios/{$this->bob->id}/edit")->assertSee('autocomplete="off"', false);
+    }
+
     public function test_non_admins_get_403_and_guests_are_sent_to_login(): void
     {
         $id = $this->alice->id;

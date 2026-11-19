@@ -13,7 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -168,7 +170,32 @@ class PortfolioController extends Controller
         Gate::authorize('update', $portfolio);
         $request->session()->put(ResolveAdminPortfolio::SESSION_KEY, $portfolio->id);
 
-        return back(fallback: route('admin.dashboard'))->with('success', "Now editing “{$portfolio->name}”.");
+        return redirect($this->afterSwitch($portfolio))->with('success', "Now editing “{$portfolio->name}”.");
+    }
+
+    /**
+     * Where to land after switching: the same screen when it edits "the current portfolio" (profile, a content list…),
+     * but a portfolio's own settings page becomes the new one's, and a single record (a project, a message…) of the old
+     * portfolio goes back to its list — it would 404 now.
+     */
+    private function afterSwitch(Portfolio $portfolio): string
+    {
+        $previous = url()->previous();
+        try {
+            $route = app('router')->getRoutes()->match(Request::create($previous));
+        } catch (\Throwable) {
+            return route('admin.dashboard');
+        }
+        $name = (string) $route->getName();
+        $params = array_diff($route->parameterNames(), ['slug']);
+
+        return match (true) {
+            ! str_starts_with($name, 'admin.') => route('admin.dashboard'),
+            $name === 'admin.portfolios.edit' => route('admin.portfolios.edit', $portfolio),
+            str_starts_with($name, 'admin.resources.') => route('admin.resources.index', $route->parameter('slug')),
+            $params !== [] => Route::has($index = Str::beforeLast($name, '.').'.index') ? route($index) : route('admin.dashboard'),
+            default => $previous,
+        };
     }
 
     /** Create a sign-in for this portfolio's owner, or set a new password for the existing one. */

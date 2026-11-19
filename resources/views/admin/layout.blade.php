@@ -25,7 +25,7 @@
       <form class="nav-group switcher" method="post" action="{{ route('admin.portfolios.switch', $currentPortfolio) }}" data-switcher>
         @csrf
         <p><label for="portfolio-switcher">Editing portfolio</label></p>
-        <select id="portfolio-switcher" aria-describedby="portfolio-switcher-url">
+        <select id="portfolio-switcher" aria-describedby="portfolio-switcher-url" autocomplete="off">
           @foreach ($switchable as $p)
             <option value="{{ $p->id }}" data-action="{{ route('admin.portfolios.switch', $p) }}" @selected($p->id === $currentPortfolio->id)>{{ $p->name }} ({{ $p->username }})</option>
           @endforeach
