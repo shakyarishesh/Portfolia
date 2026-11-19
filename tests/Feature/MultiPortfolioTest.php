@@ -41,7 +41,7 @@ class MultiPortfolioTest extends TestCase
 
     public function test_username_format_reserved_words_and_case_insensitive_uniqueness(): void
     {
-        $this->assertTrue($this->valid('jenisha'));
+        $this->assertTrue($this->valid('hello'));
         $this->assertTrue($this->valid('sujan-shakya2'));
         foreach (['ab', '-abc', 'abc-', 'a--b', 'has space', 'UPPER', 'dot.name', str_repeat('a', 41)] as $bad) {
             $this->assertFalse($this->valid($bad), "{$bad} should be invalid");
