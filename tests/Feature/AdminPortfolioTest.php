@@ -33,7 +33,7 @@ class AdminPortfolioTest extends TestCase
 
     private function payload(array $overrides = []): array
     {
-        return $overrides + ['name' => 'Carol', 'username' => 'carol', 'status' => 'draft', 'template' => 'classic',
+        return $overrides + ['name' => 'Carol', 'username' => 'carol', 'status' => 'draft', 'template' => 'classic', 'type' => 'technical',
             'seo_title' => 'Carol — Engineer', 'seo_description' => 'Hi', 'og_image_url' => 'https://example.test/og.png'];
     }
 
@@ -111,23 +111,23 @@ class AdminPortfolioTest extends TestCase
         $before = [$this->rows($this->alice), $this->rows($this->bob)];
 
         $this->from("/admin/portfolios/{$this->alice->id}/edit")
-            ->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'content_journal'])
+            ->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'gradient'])
             ->assertRedirect("/admin/portfolios/{$this->alice->id}/edit")->assertSessionHas('success', 'Saved as draft. Preview it, then publish.');
-        $this->assertSame(['classic', 'content_journal'], [$this->alice->fresh()->template, $this->alice->fresh()->draft_template]);
-        $this->get("/admin/portfolios/{$this->alice->id}/edit")->assertOk()->assertSee('Draft template')->assertSee('Content Journal settings');
+        $this->assertSame(['classic', 'gradient'], [$this->alice->fresh()->template, $this->alice->fresh()->draft_template]);
+        $this->get("/admin/portfolios/{$this->alice->id}/edit")->assertOk()->assertSee('Draft template')->assertSee('Gradient settings');
 
         $this->get("/admin/portfolios/{$this->alice->id}/preview")->assertRedirect('/alice');
-        $this->assertSame('content_journal', session(Templates::previewKey($this->alice)));
+        $this->assertSame('gradient', session(Templates::previewKey($this->alice)));
 
         $this->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'nope'])->assertSessionHasErrors('template');
 
         $this->post("/admin/portfolios/{$this->alice->id}/template/publish")->assertRedirect();
-        $this->assertSame(['content_journal', null], [$this->alice->fresh()->template, $this->alice->fresh()->draft_template]);
+        $this->assertSame(['gradient', null], [$this->alice->fresh()->template, $this->alice->fresh()->draft_template]);
         $this->assertNull(session(Templates::previewKey($this->alice)));
 
         // Choosing the live template clears any draft.
         $this->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'classic']);
-        $this->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'content_journal']);
+        $this->post("/admin/portfolios/{$this->alice->id}/template", ['template' => 'gradient']);
         $this->assertNull($this->alice->fresh()->draft_template);
 
         $this->assertSame($before, [$this->rows($this->alice), $this->rows($this->bob)]);

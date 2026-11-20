@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Middleware\ResolveAdminPortfolio;
 use App\Models\Media;
 use App\Models\Portfolio;
+use App\Models\PortfolioType;
+use App\Support\CurrentPortfolio;
 use App\Models\User;
 use App\Support\Templates;
 use App\Support\Username;
@@ -50,16 +52,18 @@ class PortfolioController extends Controller
     {
         Gate::authorize('create', Portfolio::class);
 
-        return view('admin.portfolios.create', ['portfolio' => new Portfolio(['status' => 'draft', 'template' => Templates::DEFAULT]),
-            'users' => $this->users(), 'templates' => Templates::available()]);
+        return view('admin.portfolios.create', ['portfolio' => new Portfolio(['status' => 'draft', 'template' => Templates::DEFAULT, 'type' => PortfolioType::DEFAULT]),
+            'users' => $this->users(), 'templates' => Templates::available(), 'types' => $this->types()]);
     }
 
     public function store(Request $request)
     {
         Gate::authorize('create', Portfolio::class);
-        $data = $this->validated($request, null, ['template' => ['required', Rule::in(array_keys(Templates::available()))]]);
+        $type = $this->validatedType($request);
+        $data = $this->validated($request, null, ['template' => ['required', Rule::in(array_keys(Templates::forType($type['type'])))]],
+            messages: ['template.in' => 'Pick a template recommended for this portfolio type (Admin → Portfolio types sets which ones).']);
 
-        $portfolio = Portfolio::provision($this->withPublishedAt($data), ['full_name' => $data['name']]);
+        $portfolio = Portfolio::provision($this->withPublishedAt($data) + $type, ['full_name' => $data['name']]);
         $request->session()->put(ResolveAdminPortfolio::SESSION_KEY, $portfolio->id);
 
         return redirect()->route('admin.portfolios.edit', $portfolio)
@@ -76,7 +80,8 @@ class PortfolioController extends Controller
         return view('admin.portfolios.edit', [
             'portfolio' => $portfolio,
             'users' => $this->users(),
-            'templates' => Templates::available(),
+            'templates' => Templates::forType($portfolio->type, array_filter([$portfolio->template, $portfolio->draft_template])),
+            'types' => $this->types($portfolio),
             'settingsKey' => $settingsKey,
             'settings' => $portfolio->settingsFor($settingsKey),
             'isCurrent' => (int) session(ResolveAdminPortfolio::SESSION_KEY) === $portfolio->id,
@@ -110,7 +115,8 @@ class PortfolioController extends Controller
     public function template(Request $request, Portfolio $portfolio)
     {
         Gate::authorize('update', $portfolio);
-        $key = $request->validate(['template' => ['required', 'string', Rule::in(array_keys(Templates::available()))]])['template'];
+        $key = $request->validate(['template' => ['required', 'string', Rule::in(array_keys(Templates::forType($portfolio->type, [$portfolio->template])))]],
+            ['template.in' => 'That template is not recommended for this portfolio type.'])['template'];
 
         if ($key === $portfolio->template) {
             $portfolio->update(['draft_template' => null]);
@@ -135,6 +141,38 @@ class PortfolioController extends Controller
         $request->session()->forget(Templates::previewKey($portfolio));
 
         return back()->with('success', 'Template published: '.Templates::meta($portfolio->template)['name'].' is now live.');
+    }
+
+    /**
+     * Change the portfolio type. Nothing is removed or hidden: content of the old type stays (and comes back if the type
+     * is switched back); the new type's sections are added, and optionally the Projects/Skills tabs take its words.
+     */
+    public function type(Request $request, Portfolio $portfolio)
+    {
+        Gate::authorize('update', $portfolio);
+        $data = $this->validatedType($request, $portfolio);
+        $portfolio->update($data);
+        $name = $portfolio->portfolioType?->name ?? $data['type'];
+
+        $added = CurrentPortfolio::using($portfolio, function () use ($portfolio, $request) {
+            if ($request->boolean('relabel')) {
+                foreach (Arr::only(Portfolio::sectionCatalog($portfolio->moduleKeys()), ['projects', 'skills']) as $key => [$label, $eyebrow, $title]) {
+                    \App\Models\Section::query()->where('key', $key)->first()?->update(['nav_label' => $label, 'eyebrow' => $eyebrow, 'title' => $title]);
+                }
+            }
+
+            return $portfolio->addTypeSections();
+        });
+
+        $message = "Portfolio type is now {$name}. Nothing was removed or hidden.";
+        if ($added) {
+            $message .= ' New sections to fill in: '.implode(', ', $added).' — see Sections & order (they stay off the public site until they have content).';
+        }
+        if (! isset(Templates::forType($portfolio->type)[$portfolio->template])) {
+            $message .= ' The current template is not one recommended for this type; it keeps working, and the recommended ones are listed under Template.';
+        }
+
+        return back()->with('success', $message);
     }
 
     public function status(Request $request, Portfolio $portfolio)
@@ -223,7 +261,26 @@ class PortfolioController extends Controller
         return back()->with('success', "Login created: {$user->email} can now sign in at ".route('login').' and edit this portfolio.');
     }
 
-    private function validated(Request $request, ?Portfolio $portfolio, array $extra = [], bool $manage = true): array
+    /** type + disciplines (Hybrid: two or more other types, stored in the platform's order; otherwise null). */
+    private function validatedType(Request $request, ?Portfolio $portfolio = null): array
+    {
+        $options = array_keys(PortfolioType::disciplineOptions());
+        $data = $request->validate([
+            'type' => ['required', 'string', Rule::in(array_keys($this->types($portfolio)))],
+            'disciplines' => ['exclude_unless:type,'.PortfolioType::HYBRID, 'required', 'array', 'min:2'],
+            'disciplines.*' => ['string', Rule::in($options)],
+        ], ['disciplines.required' => 'A hybrid portfolio combines at least two disciplines.', 'disciplines.min' => 'A hybrid portfolio combines at least two disciplines.']);
+
+        return ['type' => $data['type'], 'disciplines' => $data['type'] === PortfolioType::HYBRID ? array_values(array_intersect($options, $data['disciplines'])) : null];
+    }
+
+    /** Types to choose from: the active ones, plus the portfolio's current type even if it was switched off. */
+    private function types(?Portfolio $portfolio = null): array
+    {
+        return PortfolioType::query()->ordered()->where(fn ($q) => $q->where('is_active', true)->orWhere('slug', $portfolio?->type))->get()->keyBy('slug')->all();
+    }
+
+    private function validated(Request $request, ?Portfolio $portfolio, array $extra = [], bool $manage = true, array $messages = []): array
     {
         $rules = [
             'name' => ['required', 'string', 'max:120'],
@@ -240,7 +297,7 @@ class PortfolioController extends Controller
             ];
         }
 
-        return $request->validate($rules + $extra);
+        return $request->validate($rules + $extra, $messages);
     }
 
     private function withPublishedAt(array $data, ?Portfolio $portfolio = null): array

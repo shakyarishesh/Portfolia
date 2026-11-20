@@ -58,6 +58,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:portal', Resolv
     Route::get('/portfolios/{portfolio}/edit', [Admin\PortfolioController::class, 'edit'])->name('portfolios.edit');
     Route::put('/portfolios/{portfolio}', [Admin\PortfolioController::class, 'update'])->name('portfolios.update');
     Route::post('/portfolios/{portfolio}/status', [Admin\PortfolioController::class, 'status'])->name('portfolios.status')->middleware('can:admin');
+    Route::post('/portfolios/{portfolio}/type', [Admin\PortfolioController::class, 'type'])->name('portfolios.type');
     Route::post('/portfolios/{portfolio}/template', [Admin\PortfolioController::class, 'template'])->name('portfolios.template');
     Route::post('/portfolios/{portfolio}/template/publish', [Admin\PortfolioController::class, 'publishTemplate'])->name('portfolios.template.publish');
     Route::post('/portfolios/{portfolio}/owner', [Admin\PortfolioController::class, 'owner'])->name('portfolios.owner')->middleware('can:admin');

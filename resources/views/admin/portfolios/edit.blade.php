@@ -47,9 +47,19 @@
       </div>
     </form>
 
+    <form class="card" method="post" action="{{ route('admin.portfolios.type', $portfolio) }}" aria-labelledby="type-heading">
+      @csrf
+      <h2 id="type-heading">Portfolio type
+        <span class="badge type-badge">{{ trim(($types[$portfolio->type]->icon ?? '').' '.($types[$portfolio->type]->name ?? $portfolio->type)) }}</span></h2>
+      <p class="small muted">Changing the type never deletes or hides anything: fields of the old type are kept (and come back if you switch back), and the new type's sections are added for you to fill in.</p>
+      @include('admin.portfolios._type-fields')
+      @include('admin.partials.field', ['name' => 'relabel', 'field' => ['type' => 'checkbox', 'label' => 'Also rename the Projects and Skills tabs to the new type\'s words (e.g. "Campaigns", "Courses & programs")'], 'value' => true])
+      <div class="form-actions"><button class="btn" type="submit" data-loading="Saving…">Change type</button></div>
+    </form>
+
     <section class="card" aria-labelledby="templates-heading">
       <h2 id="templates-heading">Template</h2>
-      <p class="small muted">Choosing a template saves it as a draft. Preview it, then publish. Content is shared by all templates and never changes when you switch.</p>
+      <p class="small muted">Templates recommended for this portfolio type. Choosing one saves it as a draft. Preview it, then publish. Content is shared by all templates and never changes when you switch.</p>
       <div class="template-grid">
         @foreach ($templates as $key => $meta)
           @php $live = $key === $portfolio->template; $draft = $key === $portfolio->draft_template; @endphp
