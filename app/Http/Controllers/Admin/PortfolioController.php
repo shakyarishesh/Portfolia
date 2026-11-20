@@ -40,8 +40,14 @@ class PortfolioController extends Controller
         if (array_key_exists((string) $request->query('status'), Portfolio::STATUSES)) {
             $query->where('status', $request->query('status'));
         }
+        $types = PortfolioType::ordered()->get()->keyBy('slug');
+        if ($types->has((string) $request->query('type'))) {
+            // A Hybrid portfolio also shows under each discipline it combines.
+            $query->where(fn ($w) => $w->where('type', $request->query('type'))->orWhereJsonContains('disciplines', $request->query('type')));
+        }
 
         return view('admin.portfolios.index', [
+            'types' => $types,
             'portfolios' => $query->latest('updated_at')->paginate(25)->withQueryString(),
             'templates' => Templates::available(),
             'currentId' => session(ResolveAdminPortfolio::SESSION_KEY),

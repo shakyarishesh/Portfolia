@@ -67,6 +67,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:portal', Resolv
     Route::get('/portfolios/{portfolio}/preview', [PreviewController::class, 'start'])->name('portfolios.preview');
     Route::post('/portfolios/{portfolio}/preview/exit', [PreviewController::class, 'exit'])->name('portfolios.preview.exit');
 
+    Route::middleware('can:admin')->controller(Admin\PortfolioTypeController::class)->group(function () {
+        Route::get('/portfolio-types', 'index')->name('types.index');
+        Route::get('/portfolio-types/create', 'create')->name('types.create');
+        Route::post('/portfolio-types', 'store')->name('types.store');
+        Route::put('/portfolio-types/compatibility', 'compatibility')->name('types.compatibility');
+        Route::get('/portfolio-types/{type}/edit', 'edit')->name('types.edit');
+        Route::put('/portfolio-types/{type}', 'update')->name('types.update');
+        Route::delete('/portfolio-types/{type}', 'destroy')->name('types.destroy');
+    });
+
     Route::get('/applications', [Admin\ApplicationController::class, 'index'])->name('applications.index')->middleware('can:admin');
     Route::get('/applications/{portfolio}', [Admin\ApplicationController::class, 'show'])->name('applications.show')->middleware('can:admin');
     Route::post('/applications/{portfolio}/approve', [Admin\ApplicationController::class, 'approve'])->name('applications.approve')->middleware('can:admin');

@@ -205,3 +205,7 @@ fieldset.card legend { float: left; width: 100%; padding: 0; }
 .theme-toggle [data-icon]::after { content: "☾"; }
 :root[data-theme=dark] .theme-toggle [data-icon]::after { content: "☀"; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme=light]) .theme-toggle [data-icon]::after { content: "☀"; } }
+.badge.type-badge { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+table.matrix td { text-align: center; }
+table.matrix th[scope=col] { white-space: normal; min-width: 7rem; font-size: .85rem; }
+table.matrix input { width: 18px; height: 18px; accent-color: var(--accent); }

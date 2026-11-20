@@ -28,7 +28,7 @@ class ResolveAdminPortfolio
         if (! $portfolio) {
             // Nothing to edit yet: only portfolio management makes sense.
             // Non-admins fall through so `can:portal` (which runs after this middleware) still answers 403.
-            if (! $request->routeIs('admin.portfolios.*') && Gate::allows('admin')) {
+            if (! $request->routeIs('admin.portfolios.*', 'admin.types.*') && Gate::allows('admin')) {
                 return redirect()->route('admin.portfolios.create')->with('success', 'Create a portfolio first.');
             }
         } else {

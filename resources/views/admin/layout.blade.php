@@ -39,6 +39,7 @@
       <a class="nav {{ $nav('admin.dashboard') }}" href="{{ route('admin.dashboard') }}">Dashboard</a>
       @if ($isAdmin)
         <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.index') }}">Portfolios <span class="count">{{ $switchable->count() }}</span></a>
+        <a class="nav {{ $nav('admin.types.*') }}" href="{{ route('admin.types.index') }}">Portfolio types</a>
         <a class="nav {{ $nav('admin.applications.*') }}" href="{{ route('admin.applications.index') }}">Applications @if ($pendingApplications)<span class="count" title="Waiting for review">{{ $pendingApplications }}</span>@endif</a>
       @elseif ($currentPortfolio)
         <a class="nav {{ $nav('admin.portfolios.*') }}" href="{{ route('admin.portfolios.edit', $currentPortfolio) }}">Template &amp; settings</a>
