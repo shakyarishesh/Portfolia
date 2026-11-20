@@ -96,7 +96,7 @@ class OnboardingTest extends TestCase
 
         $this->assertSame(0, Portfolio::count());
         $this->get('/demo')->assertOk()->assertSee('Ms Teacher')->assertSee('Physics 101')->assertSee('Teaching')->assertDontSee('secret-budget');
-        $this->get('/demo/projects/physics-101')->assertOk()->assertDontSee('secret-budget');
+        $this->get('/demo/projects/physics-101')->assertOk()->assertSee('Everyone passed.')->assertSee('Physics')->assertDontSee('secret-budget');
     }
 
     public function test_every_type_has_a_sample_portfolio(): void

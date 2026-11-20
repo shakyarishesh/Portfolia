@@ -17,9 +17,9 @@
         'Stack' => $project->technologies->pluck('name')->implode(', '),
     ]);
     $prose = array_filter([
-        'Problem' => $project->problem,
+        $portfolio->projectLabel('problem', 'Problem') => $project->problem,
         'Architecture' => $project->architecture,
-        'Challenges' => $project->challenges,
+        $portfolio->projectLabel('challenges', 'Challenges') => $project->challenges,
     ]);
 @endphp
 @extends('portfolios.templates.content_journal.layout')
@@ -31,7 +31,7 @@
 
   <article class="cj-article">
     <header class="cj-pagehead">
-      <p class="cj-kicker"><a href="{{ route('home') }}#projects">Projects</a></p>
+      <p class="cj-kicker"><a href="{{ route('home') }}#projects">{{ $portfolio->term('projects') }}</a></p>
       <h1>{{ $project->name }}</h1>
       @if ($project->tagline)<p class="cj-lede">{{ $project->tagline }}</p>@endif
       @if ($project->live_url || $project->repo_url)
@@ -63,6 +63,7 @@
         @foreach (Markdown::paragraphs($text) as $p)<p>{!! $p !!}</p>@endforeach
       @endforeach
 
+      @include('portfolios.partials.project-details')
       @if ($highlights->isNotEmpty())
         <h2>Outcomes</h2>
         <ul>@foreach ($highlights as $hl)<li><strong>{{ $hl->title }}</strong>@if ($hl->summary) — {{ $hl->summary }}@endif</li>@endforeach</ul>
@@ -71,7 +72,7 @@
 
     @if ($project->screenshots->isNotEmpty())
       <section aria-labelledby="shots-h">
-        <h2 id="shots-h">Screenshots</h2>
+        <h2 id="shots-h">{{ $portfolio->term('screenshots') }}</h2>
         <div class="cj-shots">
           @foreach ($project->screenshots as $shot)
             <figure>

@@ -48,7 +48,7 @@
     </nav>
     <div class="nav-tools">
       @if ($hasBlog)<a class="nav-link" href="{{ route('blog.index') }}">Blog</a>@endif
-      @if (empty($demo))<a class="nav-link" href="{{ route('playground') }}">API</a>@endif{{-- no playground in the session-only demo --}}
+      @if (empty($demo) && $portfolio->hasModule('technical'))<a class="nav-link" href="{{ route('playground') }}">API</a>@endif{{-- no playground in the demo; a developer-only extra --}}
       <button class="icon-btn" type="button" data-terminal-open aria-label="Open interactive terminal" title="Terminal ( ` )"><span aria-hidden="true">&gt;_</span></button>
       <details class="accent-picker">
         <summary class="icon-btn" aria-label="Choose accent colour" title="Accent colour"><span class="swatch" aria-hidden="true"></span></summary>
@@ -74,7 +74,7 @@
   <main>
     @foreach ($sections as $section)
       <section class="panel" id="{{ $section->key }}" data-fx="{{ $fx[$section->key] ?? 'rise' }}" aria-label="{{ $section->nav_label }}">
-        @include('portfolio.sections.'.$section->key, ['section' => $section, 'md' => $md, 'names' => $names])
+        @include(\App\Models\Portfolio::isFreeTextSection($section->key) ? 'portfolio.sections._text' : 'portfolio.sections.'.$section->key, ['section' => $section, 'md' => $md, 'names' => $names])
       </section>
     @endforeach
   </main>

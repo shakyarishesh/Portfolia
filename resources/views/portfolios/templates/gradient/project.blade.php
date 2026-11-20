@@ -12,7 +12,7 @@
     ];
     $prose = [
         'overview' => ['Overview', $project->description],
-        'problem' => ['Problem & objectives', $project->problem],
+        'problem' => [$portfolio->projectLabel('problem', 'Problem & objectives'), $project->problem],
     ];
     $facts = array_filter([
         'Role' => $project->role,
@@ -31,7 +31,7 @@
 
     <article class="gd-article">
       <header class="gd-article-head">
-        <p class="gd-eyebrow"><a href="{{ route('home') }}#projects">Projects</a></p>
+        <p class="gd-eyebrow"><a href="{{ route('home') }}#projects">{{ $portfolio->term('projects') }}</a></p>
         <h1 class="gd-article-title">{{ $project->name }}</h1>
         @if ($project->tagline)<p class="gd-lede">{{ $project->tagline }}</p>@endif
         @if ($project->live_url || $project->repo_url)
@@ -82,11 +82,12 @@
         @endif
 
         @if ($project->challenges)
-          <h2 id="challenges">Challenges &amp; solutions</h2>
+          <h2 id="challenges">{{ $portfolio->projectLabel('challenges', 'Challenges & solutions') }}</h2>
           @foreach (Markdown::paragraphs($project->challenges) as $para)<p>{!! $para !!}</p>@endforeach
         @endif
       </div>
 
+      @include('portfolios.partials.project-details')
       @if ($highlights->isNotEmpty())
         <section class="gd-block" aria-labelledby="highlights">
           <h2 id="highlights" class="gd-h2">Engineering highlights</h2>
@@ -105,7 +106,7 @@
 
       @if ($project->screenshots->isNotEmpty())
         <section class="gd-block" aria-labelledby="shots-h">
-          <h2 id="shots-h" class="gd-h2">Screenshots</h2>
+          <h2 id="shots-h" class="gd-h2">{{ $portfolio->term('screenshots') }}</h2>
           <div class="gd-shots">
             @foreach ($project->screenshots as $shot)
               <figure class="gd-frame">

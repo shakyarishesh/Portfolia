@@ -19,9 +19,9 @@
     ]);
     $prose = array_filter([
         'overview' => ['Overview', $project->description],
-        'problem' => ['Problem & objectives', $project->problem],
+        'problem' => [$portfolio->projectLabel('problem', 'Problem & objectives'), $project->problem],
         'architecture' => ['Architecture', $project->architecture],
-        'challenges' => ['Challenges & solutions', $project->challenges],
+        'challenges' => [$portfolio->projectLabel('challenges', 'Challenges & solutions'), $project->challenges],
     ], fn ($pair) => filled($pair[1]));
 @endphp
 @extends('portfolios.templates.modern_personal.layout')
@@ -77,6 +77,7 @@
           <ul>@foreach ($project->features as $feature)<li>{!! $md($feature) !!}</li>@endforeach</ul>
         @endif
 
+        @include('portfolios.partials.project-details')
         @if ($highlights->isNotEmpty())
           <h2 id="highlights">Highlights</h2>
           @foreach ($highlights as $h)
@@ -87,7 +88,7 @@
         @endif
 
         @if ($project->screenshots->isNotEmpty())
-          <h2 id="screenshots">Screenshots</h2>
+          <h2 id="screenshots">{{ $portfolio->term('screenshots') }}</h2>
           @foreach ($project->screenshots as $shot)
             <figure class="mp-shot">
               <a href="{{ $shot->url() }}"><img src="{{ $shot->url() }}" alt="{{ $shot->alt ?: $project->name.' screenshot' }}" loading="lazy" width="1200" height="750"></a>

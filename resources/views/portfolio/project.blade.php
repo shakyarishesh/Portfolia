@@ -50,7 +50,7 @@
       <div class="doc-grid">
         <div>
           @if ($project->description)<h2 id="overview">Overview</h2>@foreach (Paragraphs::paragraphs($project->description) as $p)<p>{!! $p !!}</p>@endforeach @endif
-          @if ($project->problem)<h2 id="problem">Problem &amp; objectives</h2>@foreach (Paragraphs::paragraphs($project->problem) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @if ($project->problem)<h2 id="problem">{{ $portfolio->projectLabel('problem', 'Problem & objectives') }}</h2>@foreach (Paragraphs::paragraphs($project->problem) as $p)<p>{!! $p !!}</p>@endforeach @endif
           @if ($project->features)<h2 id="built">What I built</h2><ul>@foreach ($project->features as $f)<li>{!! $md($f) !!}</li>@endforeach</ul>@endif
           @if ($project->architecture)<h2 id="architecture">Architecture</h2>@foreach (Paragraphs::paragraphs($project->architecture) as $p)<p>{!! $p !!}</p>@endforeach @endif
           @if ($project->diagram)
@@ -59,7 +59,8 @@
               <figcaption><button type="button" class="linkish" data-diagram-expand>Expand diagram</button> · Simplified, public-safe view.</figcaption>
             </figure>
           @endif
-          @if ($project->challenges)<h2 id="challenges">Challenges &amp; solutions</h2>@foreach (Paragraphs::paragraphs($project->challenges) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @if ($project->challenges)<h2 id="challenges">{{ $portfolio->projectLabel('challenges', 'Challenges & solutions') }}</h2>@foreach (Paragraphs::paragraphs($project->challenges) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @include('portfolios.partials.project-details')
           @if ($highlights->isNotEmpty())
             <h2>Engineering highlights</h2>
             @foreach ($highlights as $h)
@@ -75,7 +76,7 @@
       </div>
 
       @if ($project->screenshots->isNotEmpty())
-        <h2>Screenshots</h2>
+        <h2>{{ $portfolio->term('screenshots') }}</h2>
         <div class="shots">@foreach ($project->screenshots as $shot)<a href="{{ $shot->url() }}" target="_blank" rel="noopener"><img src="{{ $shot->url() }}" alt="{{ $shot->alt ?: $project->name.' screenshot' }}" loading="lazy"></a>@endforeach</div>
       @endif
 

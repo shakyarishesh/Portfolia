@@ -12,7 +12,7 @@
     ];
     $nav = [
         ['href' => route('home'), 'emoji' => '🏠', 'label' => 'Home'],
-        ['href' => route('home').'#projects', 'emoji' => '🚀', 'label' => 'Projects'],
+        ['href' => route('home').'#projects', 'emoji' => '🚀', 'label' => $portfolio->term('projects')],
     ];
     $facts = array_filter([
         ['🎭', 'Role', $project->role],
@@ -22,9 +22,9 @@
     ], fn ($f) => filled($f[2]));
     $blocks = array_filter([
         ['overview', '📖', 'Overview', $project->description],
-        ['problem', '🎯', 'Problem & objectives', $project->problem],
+        ['problem', '🎯', $portfolio->projectLabel('problem', 'Problem & objectives'), $project->problem],
         ['architecture', '🏗️', 'Architecture', $project->architecture],
-        ['challenges', '🧗', 'Challenges & solutions', $project->challenges],
+        ['challenges', '🧗', $portfolio->projectLabel('challenges', 'Challenges & solutions'), $project->challenges],
     ], fn ($b) => filled($b[3]));
 @endphp
 @extends('portfolios.templates.picto._layout')
@@ -36,7 +36,7 @@
 
   <article class="pc-article pc-wrap">
     <header class="pc-article-head">
-      <p class="pc-eyebrow"><a href="{{ route('home') }}#projects"><span aria-hidden="true">🚀</span> Projects</a></p>
+      <p class="pc-eyebrow"><a href="{{ route('home') }}#projects"><span aria-hidden="true">🚀</span> {{ $portfolio->term('projects') }}</a></p>
       <h1>{{ $project->name }}</h1>
       @if ($project->tagline)<p class="pc-lede">{{ $project->tagline }}</p>@endif
       @if ($project->live_url || $project->repo_url)
@@ -82,6 +82,7 @@
         <ul class="pc-checks">@foreach ($project->features as $feature)<li>{!! $md($feature) !!}</li>@endforeach</ul>
       @endif
 
+      @include('portfolios.partials.project-details')
       @if ($highlights->isNotEmpty())
         <h2 id="highlights"><span class="pc-mini-marker" aria-hidden="true">💡</span> Engineering highlights</h2>
         @foreach ($highlights as $h)
@@ -96,7 +97,7 @@
 
     @if ($project->screenshots->isNotEmpty())
       <section class="pc-shots" aria-labelledby="shots-h">
-        <h2 id="shots-h"><span class="pc-mini-marker" aria-hidden="true">📸</span> Screenshots</h2>
+        <h2 id="shots-h"><span class="pc-mini-marker" aria-hidden="true">📸</span> {{ $portfolio->term('screenshots') }}</h2>
         <div class="pc-grid">
           @foreach ($project->screenshots as $shot)
             <figure class="pc-card">

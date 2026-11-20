@@ -11,10 +11,10 @@
         'ogType' => 'article',
         'canonical' => route('projects.show', ['project' => $project]),
     ];
-    $navItems = [[route('home'), 'Overview'], [route('home').'#projects', 'Projects']];
+    $navItems = [[route('home'), 'Overview'], [route('home').'#projects', $portfolio->term('projects')]];
     $prose = [
         'overview' => ['Overview', $project->description],
-        'problem' => ['Problem & objectives', $project->problem],
+        'problem' => [$portfolio->projectLabel('problem', 'Problem & objectives'), $project->problem],
     ];
     $facts = array_filter([
         'Role' => $project->role,
@@ -32,7 +32,7 @@
     @endif
 
     <nav class="pro-crumbs" aria-label="Breadcrumb">
-      <ol><li><a href="{{ route('home') }}">{{ $profile->full_name }}</a></li><li><a href="{{ route('home') }}#projects">Projects</a></li><li aria-current="page">{{ $project->name }}</li></ol>
+      <ol><li><a href="{{ route('home') }}">{{ $profile->full_name }}</a></li><li><a href="{{ route('home') }}#projects">{{ $portfolio->term('projects') }}</a></li><li aria-current="page">{{ $project->name }}</li></ol>
     </nav>
 
     <header class="pro-page-head">
@@ -41,7 +41,7 @@
       @if ($project->tagline)<p class="pro-lead">{{ $project->tagline }}</p>@endif
       @if ($project->live_url || $project->repo_url)
         <p class="pro-ctas">
-          @if ($project->live_url)<a class="pro-btn pro-btn-primary" href="{{ $project->live_url }}" target="_blank" rel="noopener">Live demo{!! $icon('external') !!}<span class="pro-sr"> (opens in a new tab)</span></a>@endif
+          @if ($project->live_url)<a class="pro-btn pro-btn-primary" href="{{ $project->live_url }}" target="_blank" rel="noopener">{{ $portfolio->term('live') }}{!! $icon('external') !!}<span class="pro-sr"> (opens in a new tab)</span></a>@endif
           @if ($project->repo_url)<a class="pro-btn pro-btn-ghost" href="{{ $project->repo_url }}" target="_blank" rel="noopener">{!! $icon('code') !!}View source<span class="pro-sr"> (opens in a new tab)</span></a>@endif
         </p>
       @endif
@@ -78,10 +78,11 @@
           @endif
 
           @if ($project->challenges)
-            <h2 id="challenges">Challenges &amp; solutions</h2>
+            <h2 id="challenges">{{ $portfolio->projectLabel('challenges', 'Challenges & solutions') }}</h2>
             @foreach (Markdown::paragraphs($project->challenges) as $para)<p>{!! $para !!}</p>@endforeach
           @endif
 
+          @include('portfolios.partials.project-details')
           @if ($highlights->isNotEmpty())
             <h2 id="highlights">Key achievements</h2>
             @foreach ($highlights as $h)
@@ -94,7 +95,7 @@
 
         @if ($project->screenshots->isNotEmpty())
           <section class="pro-shots" aria-labelledby="shots-h">
-            <h2 id="shots-h" class="pro-h3">Screenshots</h2>
+            <h2 id="shots-h" class="pro-h3">{{ $portfolio->term('screenshots') }}</h2>
             <div class="pro-grid pro-grid-2">
               @foreach ($project->screenshots as $shot)
                 <figure class="pro-card">
@@ -117,7 +118,7 @@
             </dl>
           @endif
           @if ($project->technologies->isNotEmpty())
-            <p class="pro-h4">Technologies</p>
+            <p class="pro-h4">{{ $portfolio->term('technologies') }}</p>
             <ul class="pro-tags">@foreach ($project->technologies as $tech)<li>{{ $tech->name }}</li>@endforeach</ul>
           @endif
         </aside>

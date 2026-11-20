@@ -45,6 +45,12 @@ class Project extends Model
         return parent::getAttribute($key);
     }
 
+    // Laravel only mass-assigns real columns; detail keys are virtual columns of `details`.
+    protected function isGuardableColumn($key)
+    {
+        return in_array($key, self::detailKeys(), true) || parent::isGuardableColumn($key);
+    }
+
     public function setAttribute($key, $value)
     {
         if (is_string($key) && in_array($key, self::detailKeys(), true)) {

@@ -32,7 +32,7 @@
               <h3 id="pt-{{ $p->slug }}">{{ $p->name }}</h3>
               @if ($p->tagline)<p class="tagline">{{ $p->tagline }}</p>@endif
               <dl class="facts">
-                @if ($p->problem)<div><dt>Problem</dt><dd>{{ Str::limit($p->problem, 240) }}</dd></div>
+                @if ($p->problem)<div><dt>{{ $portfolio->projectLabel('problem', 'Problem') }}</dt><dd>{{ Str::limit($p->problem, 240) }}</dd></div>
                 @elseif ($p->description)<div><dt>Overview</dt><dd>{{ Str::limit($p->description, 240) }}</dd></div>@endif
                 @if ($p->role)<div><dt>Role</dt><dd>{{ $p->role }}</dd></div>@endif
                 @if ($p->technologies->isNotEmpty())<div><dt>Stack</dt><dd><ul class="tags">@foreach ($p->technologies as $t)<li>{{ $t->name }}</li>@endforeach</ul></dd></div>@endif

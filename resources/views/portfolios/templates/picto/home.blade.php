@@ -334,6 +334,8 @@
             @endif
           </div>
           @break
+        @default
+          <div class="pc-card">@include('portfolios.partials.text-section', ['key' => $b['key']])</div>
       @endswitch
     </section>
   @endforeach

@@ -123,6 +123,45 @@ class Portfolio extends Model
         return ['work' => $module['work'], 'skills' => $module['skills']];
     }
 
+    /**
+     * Public wording that depends on the type (config only, so it costs no queries): a teacher's page says
+     * "Teaching" and "View online", a developer's "Projects" and "Live demo".
+     */
+    public function term(string $key): string
+    {
+        $tech = $this->hasModule('technical');
+
+        return match ($key) {
+            'projects' => $this->labels()['work'][0],
+            'project' => ucfirst($this->labels()['work'][3]),
+            'live' => $tech ? 'Live demo' : 'View online',
+            'case_study' => $tech ? 'Case study' : 'Read more',
+            'technologies' => $this->projectLabel('technologies', 'Technologies'),
+            'screenshots' => $tech ? 'Screenshots' : 'Gallery',
+            default => $key,
+        };
+    }
+
+    /** Project fields this portfolio's modules use. Others (kept from an earlier type) are stored but not shown publicly. */
+    public function projectFieldKeys(): array
+    {
+        $keys = array_merge(...array_map(fn ($m) => array_keys(config("portfolio.modules.{$m}.project_fields", [])), $this->moduleKeys()));
+
+        return $this->isHybrid() ? [...$keys, 'disciplines'] : $keys;
+    }
+
+    /** A project field's label for this portfolio's modules (config portfolio.modules), else $default. */
+    public function projectLabel(string $field, string $default): string
+    {
+        foreach ($this->moduleKeys() as $module) {
+            if ($label = config("portfolio.modules.{$module}.project_fields.{$field}") ?? config("portfolio.modules.{$module}.labels.{$field}")) {
+                return $label;
+            }
+        }
+
+        return $default;
+    }
+
     /** Every section a portfolio can have: key => [tab, small heading, title], labelled for these modules. */
     public static function sectionCatalog(array $modules = ['technical']): array
     {
