@@ -25,11 +25,60 @@ class ProjectResource extends Resource
 
     public const NATURAL_KEY = ['name'];
 
+    /** Fields only shown when one of the portfolio's modules asks for them (config portfolio.modules.*.project_fields). */
+    public const MODULE_FIELDS = ['problem', 'features', 'architecture', 'challenges', 'diagram', 'repo_url', 'technologies'];
+
+    /** Form order. Profession-specific fields sit between the overview and the role/dates. */
+    private const ORDER = ['name', 'slug', 'tagline', 'category', 'disciplines', 'description',
+        'problem', 'client', 'industry', 'subject', 'audience', 'team_size', 'features', 'responsibilities', 'process', 'strategy',
+        'execution', 'methodology', 'materials', 'architecture', 'challenges', 'diagram', 'outcome', 'impact', 'metrics', 'budget',
+        'role', 'experience_id', 'start_date', 'end_date', 'is_current', 'live_url', 'repo_url', 'video_url', 'technologies',
+        'meta_description', 'is_featured', 'status', 'source_note'];
+
+    /** The form for the current portfolio's type (Technical & IT when there is none). */
     public static function fields(): array
     {
-        $id = request()->route('id');
+        $portfolio = \App\Support\CurrentPortfolio::get();
 
-        return [
+        return static::fieldsFor($portfolio?->moduleKeys() ?? ['technical'], $portfolio?->isHybrid() ? $portfolio->disciplineSlugs() : []);
+    }
+
+    /**
+     * Project fields for these modules: the common ones plus each module's own, labelled by the first module that
+     * uses a field (so a Hybrid portfolio never gets the same field twice). $disciplines (Hybrid) adds a "Disciplines" choice.
+     */
+    public static function fieldsFor(array $modules, array $disciplines = []): array
+    {
+        $wanted = $labels = [];
+        foreach ($modules as $module) {
+            foreach (config("portfolio.modules.{$module}.project_fields", []) as $name => $label) {
+                $wanted[$name] ??= $label ?? false;
+            }
+            foreach (config("portfolio.modules.{$module}.labels", []) as $name => $label) {
+                $labels[$name] ??= $label;
+            }
+        }
+        $all = static::catalog($disciplines);
+        $details = Project::detailKeys();
+
+        $fields = [];
+        foreach (self::ORDER as $name) {
+            $optional = in_array($name, self::MODULE_FIELDS, true) || (in_array($name, $details, true) && $name !== 'disciplines');
+            if (! isset($all[$name]) || ($optional && ! array_key_exists($name, $wanted)) || ($name === 'disciplines' && count($disciplines) < 2)) {
+                continue;
+            }
+            $label = ($wanted[$name] ?? null) ?: ($labels[$name] ?? null);
+            $fields[$name] = $label ? ['label' => $label] + $all[$name] : $all[$name];
+        }
+
+        return $fields;
+    }
+
+    /** Every project field a module can use. */
+    private static function catalog(array $disciplines): array
+    {
+        $id = request()->route('id');
+        $fields = [
             'name' => ['type' => 'text', 'label' => 'Project name', 'rules' => ['required', 'string', 'max:150']],
             'slug' => ['type' => 'text', 'label' => 'URL slug', 'help' => 'Leave blank to generate from the name.',
                 'rules' => ['nullable', 'alpha_dash', 'max:160', Rule::unique('projects', 'slug')->where('portfolio_id', \App\Support\CurrentPortfolio::id())->ignore($id)]],
@@ -56,6 +105,35 @@ class ProjectResource extends Resource
             'status' => static::statusField(),
             'source_note' => static::sourceNoteField(),
         ];
+
+        foreach (config('portfolio.project_details', []) as $name => $d) {
+            $field = ['type' => $d['type'], 'label' => $d['label']] + array_intersect_key($d, array_flip(['help', 'private']));
+            $field['rules'] = match ($d['type']) {
+                'text' => ['nullable', 'string', 'max:'.($d['max'] ?? 255)],
+                'textarea' => ['nullable', 'string', 'max:'.($d['max'] ?? 5000)],
+                'url' => ['nullable', 'url:http,https', 'max:255'],
+                'number' => ['nullable', 'integer', 'min:1', 'max:1000000'],
+                'lines' => ['nullable', 'string', 'max:'.($d['max'] ?? 4000)],
+                'checkboxes' => ['nullable', 'array'],
+            };
+            $fields[$name] = $field;
+        }
+        $types = \App\Models\PortfolioType::query()->whereIn('slug', $disciplines)->pluck('name', 'slug');
+        $fields['disciplines']['options'] = collect($disciplines)->filter(fn ($s) => $types->has($s))->mapWithKeys(fn ($s) => [$s => $types[$s]])->all();
+        $fields['disciplines']['help'] = 'Which of your disciplines this belongs to — tick more than one if it spans them.';
+
+        return $fields;
+    }
+
+    public static function rules(?Model $record = null): array
+    {
+        $fields = static::fields();
+        $rules = collect($fields)->mapWithKeys(fn (array $f, string $name) => [$name => $f['rules'] ?? ['nullable']])->all();
+        if (isset($fields['disciplines'])) {
+            $rules['disciplines.*'] = ['string', Rule::in(array_keys($fields['disciplines']['options']))];
+        }
+
+        return $rules;
     }
 
     public static function columns(): array

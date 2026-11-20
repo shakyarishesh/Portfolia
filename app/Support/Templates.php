@@ -38,6 +38,20 @@ final class Templates
         return array_filter(self::all(), fn ($t) => $t['active'] ?? true);
     }
 
+    /**
+     * Templates compatible with a portfolio type (Admin → Portfolio types), in registry order. $keep (e.g. the
+     * portfolio's current template) is always included, so an existing choice never disappears.
+     */
+    public static function forType(?string $type, array $keep = []): array
+    {
+        $compatible = (array) (\App\Models\PortfolioType::query()->where('slug', (string) $type)->first()?->templates ?? []);
+        if ($compatible === []) {
+            return self::available();
+        }
+
+        return array_filter(self::available(), fn ($k) => in_array($k, $compatible, true) || in_array($k, $keep, true), ARRAY_FILTER_USE_KEY);
+    }
+
     public static function exists(string $key): bool
     {
         return array_key_exists($key, self::available());
