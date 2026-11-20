@@ -81,6 +81,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'can:portal', Resolv
     Route::get('/analytics', Admin\AnalyticsController::class)->name('analytics');
 
     Route::get('/sections', [Admin\SectionController::class, 'index'])->name('sections.index');
+    Route::post('/sections', [Admin\SectionController::class, 'store'])->name('sections.store');
+    Route::delete('/sections/{section}', [Admin\SectionController::class, 'destroy'])->name('sections.destroy');
     Route::put('/sections/{section}', [Admin\SectionController::class, 'update'])->name('sections.update');
     Route::post('/sections/{section}/move', [Admin\SectionController::class, 'move'])->name('sections.move');
 

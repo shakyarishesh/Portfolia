@@ -42,7 +42,7 @@
         @foreach ($stats as $row)
           @php $r = $row['resource']; $c = $row['counts']; @endphp
           <tr>
-            <td><a href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::LABEL }}</a></td>
+            <td><a href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::label() }}</a></td>
             <td>{{ $c['published'] ?? 0 }}</td>
             <td>{{ $c['draft'] ?? 0 }}</td>
             <td>@if ($c['needs_review'] ?? 0)<a href="{{ route('admin.resources.index', [$r::SLUG, 'status' => 'needs_review']) }}"><span class="badge needs_review">{{ $c['needs_review'] }}</span></a>@else 0 @endif</td>

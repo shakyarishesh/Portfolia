@@ -25,6 +25,16 @@ class ProjectResource extends Resource
 
     public const NATURAL_KEY = ['name'];
 
+    public static function label(): string
+    {
+        return \App\Support\CurrentPortfolio::get()?->labels()['work'][0] ?? static::LABEL;
+    }
+
+    public static function singular(): string
+    {
+        return ucfirst(\App\Support\CurrentPortfolio::get()?->labels()['work'][3] ?? static::SINGULAR);
+    }
+
     /** Fields only shown when one of the portfolio's modules asks for them (config portfolio.modules.*.project_fields). */
     public const MODULE_FIELDS = ['problem', 'features', 'architecture', 'challenges', 'diagram', 'repo_url', 'technologies'];
 

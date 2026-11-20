@@ -107,6 +107,12 @@ class Project extends Model
         return $this->media()->where('collection', 'screenshot');
     }
 
+    /** Supporting documents (PDF), shown as downloads on the project page. */
+    public function documents(): MorphMany
+    {
+        return $this->media()->where('collection', 'document');
+    }
+
     public function period(): string
     {
         $end = $this->is_current ? 'Present' : ($this->end_date?->format('M Y') ?? '');

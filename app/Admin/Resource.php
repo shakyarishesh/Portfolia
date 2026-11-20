@@ -46,6 +46,17 @@ abstract class Resource
     /** @return array<string, callable(Model): string|string> list column => label */
     abstract public static function columns(): array;
 
+    /** Name shown in the admin (sidebar, list title). Projects use the portfolio type's own word ("Campaigns" …). */
+    public static function label(): string
+    {
+        return static::LABEL;
+    }
+
+    public static function singular(): string
+    {
+        return static::SINGULAR;
+    }
+
     public static function query(): Builder
     {
         return static::newModel()->newQuery();

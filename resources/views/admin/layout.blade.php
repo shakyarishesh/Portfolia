@@ -54,7 +54,7 @@
     <div class="nav-group">
       <p>Content</p>
       @foreach (\App\Admin\Resources::ALL as $r)
-        <a class="nav {{ request()->route('slug') === $r::SLUG ? 'active' : '' }}" href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::LABEL }}</a>
+        <a class="nav {{ request()->route('slug') === $r::SLUG ? 'active' : '' }}" href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::label() }}</a>
       @endforeach
     </div>
     <div class="nav-group">
