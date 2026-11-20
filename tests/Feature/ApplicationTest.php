@@ -42,6 +42,7 @@ class ApplicationTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return $overrides + [
+            'type' => 'technical',
             'username' => 'Dana-Dev',
             'template' => 'professional',
             'full_name' => 'Dana Developer', 'headline' => 'Backend Developer', 'intro' => 'I build APIs.', 'about' => "Para one.\n\nPara two.",
@@ -71,7 +72,7 @@ class ApplicationTest extends TestCase
 
     public function test_form_renders_every_group_and_template(): void
     {
-        $this->get('/create')->assertOk()
+        $this->get('/create?type=technical')->assertOk()
             ->assertSee(url('/').'/', false)->assertSee('name="experience[0][company]"', false)->assertSee('name="testimonials[0][quote]"', false)
             ->assertSee('experience[__INDEX__][company]', false)->assertSee('templates/gradient/preview.svg')->assertSee('name="website"', false);
     }
@@ -203,14 +204,14 @@ class ApplicationTest extends TestCase
         $this->assertSame(1, Portfolio::count());
 
         // The form re-renders the submitted rows with the error beside the field.
-        $this->followingRedirects()->from('/create')->post('/create', $payload)
+        $this->followingRedirects()->from('/create?type=technical')->post('/create', $payload)
             ->assertSee('value="Bad"', false)->assertSee('id="projects-1-live_url-error"', false)->assertSee('live url (project 2)');
     }
 
     public function test_present_end_date_marks_the_entry_current_and_drops_any_end_date(): void
     {
         $this->withoutMiddleware(ThrottleRequests::class);
-        $this->get('/create')->assertSee('name="experience[0][is_current]"', false)->assertSee('name="projects[0][is_current]"', false)->assertSee('data-present', false);
+        $this->get('/create?type=technical')->assertSee('name="experience[0][is_current]"', false)->assertSee('name="projects[0][is_current]"', false)->assertSee('data-present', false);
 
         $this->post('/create', $this->payload([
             // A stale end date before "Present" was ticked (it would also fail after_or_equal) is ignored.
@@ -236,7 +237,7 @@ class ApplicationTest extends TestCase
             3 => ['company' => 'Hajir', 'role' => '', 'employment_type' => 'full_time', 'start_date' => '2026-03-01', 'end_date' => '2026-11-18'],
         ]]);
         $this->post('/create', $payload)->assertSessionHasErrors('experience.0.role')->assertSessionDoesntHaveErrors(['experience.0.start_date', 'experience.1.start_date']);
-        $this->followingRedirects()->from('/create')->post('/create', $payload)
+        $this->followingRedirects()->from('/create?type=technical')->post('/create', $payload)
             ->assertSee('value="2026-03-01"', false)->assertSee('id="experience-0-role-error"', false)->assertDontSee('start date (job');
     }
 

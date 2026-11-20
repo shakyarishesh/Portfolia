@@ -18,7 +18,7 @@ class ApplicationImportTest extends TestCase
 
     private function upload(string $text)
     {
-        return $this->post('/create/import', ['details' => UploadedFile::fake()->createWithContent('details.txt', $text)]);
+        return $this->post('/create/import', ['type' => 'technical', 'details' => UploadedFile::fake()->createWithContent('details.txt', $text)]);
     }
 
     /** The downloaded template with answers written after the given labels (first match after the section heading). */
@@ -46,7 +46,7 @@ class ApplicationImportTest extends TestCase
         $this->assertStringContainsString("\nFull name: \n", $text);
         $this->assertStringContainsString("\nTemplate: Classic", $text);
         $this->assertStringContainsString('One of: Full-time, Part-time', $text);
-        $this->get('/create')->assertSee(route('apply.template'))->assertSee('Fill in the form');
+        $this->get('/create?type=technical')->assertSee(route('apply.template'))->assertSee('Fill in the form');
     }
 
     public function test_round_trip_fills_the_form_then_submits(): void
@@ -70,7 +70,7 @@ class ApplicationImportTest extends TestCase
         // A second job: copy of the block after ---.
         $text = str_replace("== Projects ==", "---\nCompany: Beta\nRole / title: Intern\nType: Internship\nStart date: 2019-06\nEnd date: Aug 2019\n\n== Projects ==", $text);
 
-        $this->upload($text)->assertRedirect('/create')->assertSessionHas('import_warnings', []);
+        $this->upload($text)->assertRedirect('/create?type=technical')->assertSessionHas('import_warnings', []);
         $old = session()->getOldInput();
         $this->assertSame('jane-doe', $old['username']);
         $this->assertSame('gradient', $old['template']);
@@ -81,10 +81,10 @@ class ApplicationImportTest extends TestCase
         $this->assertArrayNotHasKey('projects', $old); // blank sections are left out
 
         // The form shows it for review…
-        $this->get('/create')->assertOk()->assertSee('value="jane-doe"', false)->assertSee('Acme')->assertSee('Beta')->assertSee('filled in from your file');
+        $this->get('/create?type=technical')->assertOk()->assertSee('value="jane-doe"', false)->assertSee('Acme')->assertSee('Beta')->assertSee('filled in from your file');
 
         // …and submitting it as-is creates the pending portfolio.
-        $this->post('/create', $old + ['password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1'])->assertRedirect(route('apply.submitted'));
+        $this->post('/create', $old + ['type' => 'technical', 'password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1'])->assertRedirect(route('apply.submitted'));
         $p = Portfolio::where('username', 'jane-doe')->firstOrFail();
         $this->assertSame(['pending', 'gradient'], [$p->status, $p->template]);
         CurrentPortfolio::using($p, function () {
@@ -104,20 +104,21 @@ class ApplicationImportTest extends TestCase
         ]);
         $text = str_replace("== Profile ==", "== Profile ==\nFavourite colour: blue", $text)."\n== Hobbies ==\nChess: yes\n";
 
-        $this->upload($text)->assertRedirect('/create');
+        $this->upload($text)->assertRedirect('/create?type=technical');
         $warnings = implode("\n", session('import_warnings'));
         $this->assertStringContainsString('"Favourite colour: blue") is not a field', $warnings);
         $this->assertStringContainsString('"Sometimes" is not an option for Type (experience)', $warnings);
         $this->assertStringContainsString('"whenever" is not a date', $warnings);
         $this->assertStringContainsString('Unknown section "Hobbies"', $warnings);
         $this->assertSame(['company' => 'Acme'], session()->getOldInput('experience.0'));
-        $this->get('/create')->assertSee('Some parts of your file')->assertSee('Unknown section');
+        $this->get('/create?type=technical')->assertSee('Some parts of your file')->assertSee('Unknown section');
     }
 
     public function test_only_plain_text_files_are_accepted_and_nothing_is_stored(): void
     {
-        $this->post('/create/import', ['details' => UploadedFile::fake()->image('me.png')])->assertSessionHasErrors('details');
-        $this->post('/create/import', [])->assertSessionHasErrors('details');
+        $this->post('/create/import', ['type' => 'technical', 'details' => UploadedFile::fake()->image('me.png')])->assertSessionHasErrors('details');
+        $this->post('/create/import', ['type' => 'technical'])->assertSessionHasErrors('details');
+        $this->post('/create/import', [])->assertSessionHasErrors('type'); // the form for a type comes first
         $this->upload("\xEF\xBB\xBF== Profile ==\r\nFull name: Zoë\r\n")->assertSessionHasNoErrors();
         $this->assertSame('Zoë', session()->getOldInput('full_name'));
         $this->assertSame(0, Portfolio::count());

@@ -96,12 +96,12 @@ class OwnerPortalTest extends TestCase
 
     public function test_applicant_gets_a_login_and_can_keep_editing_while_pending(): void
     {
-        $this->post('/create', ['username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'owner@example.test',
+        $this->post('/create', ['type' => 'technical', 'username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'owner@example.test',
             'password' => 'newbie-pass', 'password_confirmation' => 'newbie-pass'])->assertSessionHasErrors('email'); // email already has an account
-        $this->post('/create', ['username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'newbie@example.test',
+        $this->post('/create', ['type' => 'technical', 'username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'newbie@example.test',
             'password' => 'short', 'password_confirmation' => 'short'])->assertSessionHasErrors('password');
 
-        $this->post('/create', ['username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'newbie@example.test',
+        $this->post('/create', ['type' => 'technical', 'username' => 'newbie', 'full_name' => 'New Bie', 'email' => 'newbie@example.test',
             'password' => 'newbie-pass', 'password_confirmation' => 'newbie-pass'])->assertRedirect(route('apply.submitted'));
         $this->get(route('apply.submitted'))->assertSee('Open my dashboard');
         $this->get('/admin')->assertOk()->assertSee('Pending approval');

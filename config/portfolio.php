@@ -296,7 +296,7 @@ return [
             'skills' => ['Tools', 'Toolbox', 'Creative tools & specialties'],
             'project_fields' => ['client' => 'Client or organization', 'problem' => 'Project objective', 'process' => null, 'outcome' => 'Final outcome',
                 'video_url' => null, 'technologies' => 'Tools used'],
-            'labels' => ['role' => 'My contribution', 'live_url' => 'External project URL', 'category' => 'Category (e.g. Branding, Photography, UI/UX)'],
+            'labels' => ['name' => 'Project title', 'role' => 'My contribution', 'live_url' => 'External project URL', 'category' => 'Category (e.g. Branding, Photography, UI/UX)'],
         ],
         'business' => [
             'name' => 'Campaigns & results',

@@ -39,7 +39,7 @@ final class Templates
     }
 
     /**
-     * Templates compatible with a portfolio type (Admin → Portfolio types), in registry order. $keep (e.g. the
+     * Templates compatible with a portfolio type (Admin → Portfolio types), in the type's order. $keep (e.g. the
      * portfolio's current template) is always included, so an existing choice never disappears.
      */
     public static function forType(?string $type, array $keep = []): array
@@ -49,7 +49,10 @@ final class Templates
             return self::available();
         }
 
-        return array_filter(self::available(), fn ($k) => in_array($k, $compatible, true) || in_array($k, $keep, true), ARRAY_FILTER_USE_KEY);
+        // In the type's recommended order, then any kept template that isn't compatible.
+        $keys = array_unique([...$compatible, ...$keep]);
+
+        return array_filter(array_merge(array_flip($keys), self::available()), fn ($t, $k) => in_array($k, $keys, true) && is_array($t), ARRAY_FILTER_USE_BOTH);
     }
 
     public static function exists(string $key): bool

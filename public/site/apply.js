@@ -37,3 +37,61 @@ const syncPresent = box => {
 };
 document.querySelectorAll('[data-present]').forEach(syncPresent);
 document.addEventListener('change', e => { if (e.target.matches('[data-present]')) syncPresent(e.target); });
+
+// Step by step: one part of the form at a time, with Back / Continue and the progress list kept in sync.
+// Without JavaScript every part shows on one page and the server validates as usual.
+(() => {
+  const root = document.querySelector('[data-stepper]');
+  if (!root) return;
+  const order = ['basics', 'template', 'details', 'review'];
+  const nav = root.querySelector('[data-step-nav]');
+  const back = nav.querySelector('[data-step-back]');
+  const next = nav.querySelector('[data-step-next]');
+  const parts = step => root.querySelectorAll(`[data-step="${step}"]`);
+  let at = 0;
+
+  const show = (i, focus) => {
+    at = i;
+    order.forEach((step, n) => parts(step).forEach(el => { el.hidden = n !== i; }));
+    root.querySelectorAll('[data-progress-step]').forEach(li => {
+      const n = order.indexOf(li.dataset.progressStep);
+      if (n === -1) return; // "Portfolio type" is always done here
+      li.classList.toggle('done', n < i);
+      n === i ? li.setAttribute('aria-current', 'step') : li.removeAttribute('aria-current');
+    });
+    back.textContent = i === 0 ? 'Change type' : 'Back';
+    next.hidden = i === order.length - 1;
+    if (focus) {
+      const first = parts(order[i])[0];
+      first.scrollIntoView({ block: 'start' });
+      (first.querySelector('legend, h2') || first).setAttribute('tabindex', '-1');
+      (first.querySelector('legend, h2') || first).focus({ preventScroll: true });
+    }
+  };
+
+  // The browser's own checks for the fields of this step (required, email, url, pattern …).
+  const valid = () => {
+    for (const el of root.querySelector('#apply-form').elements) {
+      if (el.closest('[data-step]')?.dataset.step !== order[at]) continue;
+      if (!el.disabled && !el.checkValidity()) { el.reportValidity(); return false; }
+    }
+    return true;
+  };
+
+  next.addEventListener('click', () => { if (valid()) show(at + 1, true); });
+  back.addEventListener('click', () => {
+    if (at === 0) location.href = root.querySelector('[data-progress-step="type"] a')?.href || '/create';
+    else show(at - 1, true);
+  });
+
+  // After a failed submit, open the first step that has an error.
+  const error = root.querySelector('#apply-form .error, #apply-form [aria-invalid=true]');
+  const start = error ? Math.max(0, order.indexOf(error.closest('[data-step]')?.dataset.step)) : 0;
+  nav.hidden = false;
+  // A pending browser check in a hidden step would block submit silently: send the visitor to it.
+  root.querySelector('#apply-form').addEventListener('invalid', e => {
+    const step = order.indexOf(e.target.closest('[data-step]')?.dataset.step);
+    if (step !== -1 && step !== at) show(step, false);
+  }, true);
+  show(start, false);
+})();

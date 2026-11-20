@@ -3,11 +3,18 @@
     $required ??= false;
     $error = $errors->first($errorKey);
     $describedBy = trim((isset($field['help']) ? "{$id}-help " : '').($error ? "{$id}-error" : ''));
-    $wide = in_array($field['type'], ['textarea', 'lines', 'checkbox'], true);
-    $value = is_array($value) ? implode($field['type'] === 'lines' ? "\n" : ', ', $value) : $value;
+    $wide = in_array($field['type'], ['textarea', 'lines', 'checkbox', 'checkboxes'], true);
+    $value = is_array($value) && $field['type'] !== 'checkboxes' ? implode($field['type'] === 'lines' ? "\n" : ', ', $value) : $value;
 @endphp
 <div class="field {{ $wide ? 'wide' : '' }}">
-  @if ($field['type'] === 'checkbox')
+  @if ($field['type'] === 'checkboxes')
+    <fieldset class="checks" @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
+      <legend>{{ $field['label'] }}</legend>
+      @foreach ($field['options'] as $optValue => $optLabel)
+        <label class="check"><input type="checkbox" name="{{ $name }}[]" value="{{ $optValue }}" @checked(in_array((string) $optValue, array_map('strval', (array) $value), true))> {{ $optLabel }}</label>
+      @endforeach
+    </fieldset>
+  @elseif ($field['type'] === 'checkbox')
     <label class="check"><input type="checkbox" id="{{ $id }}" name="{{ $name }}" value="1" @checked($value) @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif> {{ $field['label'] }}</label>
   @else
     <label for="{{ $id }}">{{ $field['label'] }}@if ($required) <span aria-hidden="true">*</span>@endif</label>

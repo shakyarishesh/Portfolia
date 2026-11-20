@@ -21,10 +21,12 @@ Route::get('/', LandingController::class)->name('root'); // product landing page
 Route::post('/demo', [DemoController::class, 'store'])->middleware('throttle:30,1')->name('demo.store');
 Route::get('/demo', [DemoController::class, 'show'])->name('demo.show');
 Route::get('/demo/projects/{slug}', [DemoController::class, 'project'])->name('demo.project');
+Route::get('/demo/sample/{type}', [DemoController::class, 'sample'])->middleware('throttle:30,1')->name('demo.sample');
 Route::delete('/demo', [DemoController::class, 'destroy'])->name('demo.destroy');
 
-// Public "create your portfolio" application → pending portfolio an admin approves.
+// Public "create your portfolio" application → pending portfolio an admin approves. Step 1 is the portfolio type.
 Route::get('/create', [ApplicationController::class, 'create'])->name('apply.create');
+Route::post('/create/preview', [ApplicationController::class, 'preview'])->middleware('throttle:30,1')->name('apply.preview');
 Route::post('/create', [ApplicationController::class, 'store'])->middleware('throttle:applications')->name('apply.store');
 Route::get('/create/submitted', [ApplicationController::class, 'submitted'])->name('apply.submitted');
 // Offline route: download a plain-text template, fill it in, upload it to pre-fill the form.

@@ -83,7 +83,7 @@ class ProjectResource extends Resource
             'slug' => ['type' => 'text', 'label' => 'URL slug', 'help' => 'Leave blank to generate from the name.',
                 'rules' => ['nullable', 'alpha_dash', 'max:160', Rule::unique('projects', 'slug')->where('portfolio_id', \App\Support\CurrentPortfolio::id())->ignore($id)]],
             'tagline' => ['type' => 'text', 'label' => 'Tagline', 'rules' => ['nullable', 'string', 'max:255']],
-            'category' => ['type' => 'text', 'label' => 'Category', 'help' => 'e.g. HR & Payroll, Telephony, Education. Used by the project filters.', 'rules' => ['nullable', 'string', 'max:60']],
+            'category' => ['type' => 'text', 'label' => 'Category', 'help' => 'Groups related work; visitors can filter by it.', 'rules' => ['nullable', 'string', 'max:60']],
             'description' => ['type' => 'textarea', 'label' => 'Overview', 'rules' => ['nullable', 'string', 'max:5000']],
             'problem' => ['type' => 'textarea', 'label' => 'Problem & objectives', 'rules' => ['nullable', 'string', 'max:5000']],
             'features' => ['type' => 'lines', 'label' => 'Key features / what I built', 'help' => 'One per line.', 'rules' => ['nullable', 'string', 'max:8000']],

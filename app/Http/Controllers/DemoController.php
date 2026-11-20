@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Portfolio;
+use App\Models\PortfolioType;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\Section;
@@ -85,6 +86,21 @@ class DemoController extends Controller
         ]);
     }
 
+    /** "See a sample" on the type cards: example content of that type in its first compatible template. */
+    public function sample(Request $request, PortfolioType $type)
+    {
+        abort_unless($type->is_active, 404);
+        $sample = $type->sample();
+        $templates = Templates::forType($type->slug);
+        $request->session()->put('demo', $sample + [
+            'type' => $type->slug,
+            'template' => array_key_first($templates) ?? Templates::DEFAULT,
+            'projects' => [],
+        ]);
+
+        return redirect()->route('demo.show');
+    }
+
     public function destroy(Request $request)
     {
         $request->session()->forget('demo');
@@ -119,7 +135,10 @@ class DemoController extends Controller
         $list = fn (?string $csv, int $max) => collect(explode(',', (string) $csv))->map(fn ($s) => trim($s))->filter()->unique()->take($max)->values();
 
         // Unsaved portfolio as "current" → route('home') etc. resolve to /demo/… (served by this controller).
-        $portfolio = new Portfolio(['name' => $d['name'], 'username' => 'demo', 'template' => $d['template'], 'status' => 'published']);
+        $type = $d['type'] ?? PortfolioType::DEFAULT;
+        $disciplines = $type === PortfolioType::HYBRID ? (array) ($d['disciplines'] ?? []) : [];
+        $portfolio = (new Portfolio(['name' => $d['name'], 'username' => 'demo', 'template' => $d['template'], 'status' => 'published',
+            'type' => $type, 'disciplines' => $disciplines ?: null]))->withModules(self::modules($type, $disciplines));
         CurrentPortfolio::set($portfolio);
 
         $profile = (new Profile([
@@ -138,7 +157,7 @@ class DemoController extends Controller
             return (new Project([
                 'name' => $p['name'], 'slug' => $slug, 'description' => $p['description'] ?? null, 'live_url' => $p['url'] ?? null,
                 'status' => 'published', 'is_featured' => true, 'sort_order' => $i,
-            ]))->setRelation('technologies', new Collection($list($p['technologies'] ?? null, 10)->map(fn ($n) => new Technology(['name' => $n]))->all()))
+            ] + array_intersect_key((array) ($p['details'] ?? []), array_flip(Project::detailKeys()))))->setRelation('technologies', new Collection($list($p['technologies'] ?? null, 10)->map(fn ($n) => new Technology(['name' => $n]))->all()))
                 ->setRelation('thumbnail', null)->setRelation('experience', null)->setRelation('screenshots', new Collection);
         }, $d['projects'], array_keys($d['projects'])));
 
@@ -148,8 +167,9 @@ class DemoController extends Controller
         ]);
 
         $keys = array_keys(array_filter(['home' => true, 'projects' => $projects->isNotEmpty(), 'skills' => $skills->isNotEmpty(), 'contact' => true]));
-        $sections = new Collection(array_map(function (string $key, int $i) {
-            [$label, $eyebrow, $title] = Portfolio::DEFAULT_SECTIONS[$key];
+        $catalog = Portfolio::sectionCatalog($portfolio->moduleKeys());
+        $sections = new Collection(array_map(function (string $key, int $i) use ($catalog) {
+            [$label, $eyebrow, $title] = $catalog[$key];
 
             return new Section(['key' => $key, 'nav_label' => $label, 'eyebrow' => $eyebrow, 'title' => $title, 'sort_order' => $i, 'is_visible' => true]);
         }, $keys, array_keys($keys)));
@@ -177,5 +197,14 @@ class DemoController extends Controller
             'notes' => $none,
             'enabledSections' => $keys,
         ];
+    }
+
+    /** Modules of a type from config defaults — the demo never reads the database. */
+    private static function modules(string $type, array $disciplines): array
+    {
+        $slugs = $type === PortfolioType::HYBRID ? $disciplines : [$type];
+        $modules = array_merge(...array_map(fn ($s) => (array) config("portfolio.types.{$s}.modules", []), $slugs ?: [PortfolioType::DEFAULT]));
+
+        return array_values(array_unique($modules)) ?: ['technical'];
     }
 }

@@ -36,6 +36,9 @@ class Portfolio extends Model
 
     protected $guarded = ['id'];
 
+    /** [type|disciplines, module keys] — see moduleKeys(). */
+    private ?array $moduleCache = null;
+
     protected $casts = [
         'template_settings' => 'array',
         'disciplines' => 'array',
@@ -76,7 +79,20 @@ class Portfolio extends Model
     /** Profession-specific modules (config portfolio.modules), in discipline order, without duplicates. */
     public function moduleKeys(): array
     {
-        return self::modulesFor($this->type, (array) $this->disciplines);
+        $key = $this->type.'|'.implode(',', (array) $this->disciplines); // recomputed when the type changes
+        if (($this->moduleCache[0] ?? null) !== $key) {
+            $this->moduleCache = [$key, self::modulesFor($this->type, (array) $this->disciplines)];
+        }
+
+        return $this->moduleCache[1];
+    }
+
+    /** Set the modules without a database lookup (the session-only demo). */
+    public function withModules(array $modules): static
+    {
+        $this->moduleCache = [$this->type.'|'.implode(',', (array) $this->disciplines), $modules];
+
+        return $this;
     }
 
     public static function modulesFor(?string $type, array $disciplines = []): array
