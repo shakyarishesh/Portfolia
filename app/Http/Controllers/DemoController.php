@@ -42,13 +42,19 @@ class DemoController extends Controller
             'projects.*.technologies' => ['nullable', 'string', 'max:200'],
             'projects.*.url' => ['nullable', 'url:http,https', 'max:255'],
             'template' => ['required', Rule::in(array_keys(Templates::available()))],
-        ]);
+            'type' => ['required', Rule::exists('portfolio_types', 'slug')->where('is_active', true)],
+            'disciplines' => ['exclude_unless:type,'.PortfolioType::HYBRID, 'required', 'array', 'min:2'],
+            'disciplines.*' => ['exclude_unless:type,'.PortfolioType::HYBRID, Rule::in(array_keys($options = PortfolioType::disciplineOptions()))],
+        ], ['disciplines.required' => 'A hybrid portfolio combines at least two disciplines — tick two or more.', 'disciplines.min' => 'A hybrid portfolio combines at least two disciplines — tick two or more.']);
         // The form sits at the bottom of the landing page, so send errors back to it rather than to the top.
         if ($validator->fails()) {
             return redirect(route('root').'#demo')->withErrors($validator)->withInput();
         }
         $data = $validator->validated();
         $data['projects'] = array_values(array_filter($data['projects'] ?? [], fn ($p) => filled($p['name'] ?? null)));
+        if (isset($data['disciplines'])) {
+            $data['disciplines'] = array_values(array_intersect(array_keys($options), $data['disciplines'])); // platform order
+        }
 
         $request->session()->put('demo', $data);
 

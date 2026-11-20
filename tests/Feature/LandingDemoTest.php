@@ -21,7 +21,7 @@ class LandingDemoTest extends TestCase
                 ['name' => 'Stream Lab', 'description' => 'Realtime metrics.', 'technologies' => 'Kafka, Flink', 'url' => 'https://example.test/stream'],
                 ['name' => '', 'description' => '', 'technologies' => '', 'url' => ''],
             ],
-            'template' => 'classic',
+            'template' => 'classic', 'type' => 'technical',
         ];
     }
 
@@ -66,6 +66,25 @@ class LandingDemoTest extends TestCase
         $this->assertSame([], $queries->all(), 'demo pages must not touch portfolio data');
 
         $this->assertEquals($before, collect($tables)->mapWithKeys(fn ($t) => [$t => DB::table($t)->count()]));
+    }
+
+    public function test_demo_takes_a_portfolio_type(): void
+    {
+        $this->get('/')->assertOk()->assertSee('name="type"', false)->assertSee('Creative &amp; Design', false)->assertSee('name="disciplines[]"', false);
+
+        $this->post('/demo', $this->demoInput(['type' => 'nope']))->assertSessionHasErrors('type');
+        $this->post('/demo', $this->demoInput(['type' => 'hybrid', 'disciplines' => ['creative']]))->assertSessionHasErrors('disciplines');
+        $this->post('/demo', $this->demoInput(['type' => 'hybrid', 'disciplines' => ['hybrid', 'creative']]))->assertSessionHasErrors('disciplines.0');
+        $this->assertNull(session('demo'));
+
+        $this->post('/demo', $this->demoInput(['type' => 'business', 'disciplines' => ['creative', 'education']]))->assertRedirect(route('demo.show'));
+        $this->assertArrayNotHasKey('disciplines', session('demo'), 'disciplines only kept for hybrid');
+        $this->get('/demo?template=professional')->assertOk()->assertSee('Campaigns')->assertSee('View online');
+        $this->get('/')->assertSee('value="business" selected', false);
+
+        $this->post('/demo', $this->demoInput(['type' => 'hybrid', 'disciplines' => ['education', 'creative']]))->assertRedirect(route('demo.show'));
+        $this->assertSame(['creative', 'education'], session('demo.disciplines')); // platform order
+        $this->get('/demo?template=professional')->assertOk()->assertSee('Work'); // first discipline's wording wins
     }
 
     public function test_demo_without_session_redirects_to_the_form(): void

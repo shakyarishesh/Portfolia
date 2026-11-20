@@ -36,6 +36,13 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 @media (min-width: 900px) { .demo-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: start; } .demo-grid > div:first-child { position: sticky; top: 1.5rem; } }
 .demo fieldset { background: var(--bg); }
 .demo-actions { margin-bottom: .5rem; }
+.demo-disciplines { margin-top: .75rem; }
+.discipline-choices { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.demo .check { display: flex; gap: .5rem; align-items: center; font-weight: 500; }
+/* Disciplines only matter for Hybrid (shown always where :has() is unsupported). */
+@supports selector(:has(*)) {
+  .demo-form:not(:has(#d-type option[value="hybrid"]:checked)) .demo-disciplines { display: none; }
+}
 .errors { border: 1px solid var(--bad-border); background: var(--bad-soft); border-radius: var(--radius); padding: .5rem 1rem; margin-bottom: 1rem; }
 .errors p { margin: 0; }
 [aria-invalid="true"] { border-color: var(--danger); }

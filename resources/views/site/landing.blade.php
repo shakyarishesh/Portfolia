@@ -9,6 +9,8 @@
 
 @php
   $demoTemplate = old('template', $demo['template'] ?? \App\Support\Templates::DEFAULT);
+  $demoType = old('type', $demo['type'] ?? \App\Models\PortfolioType::DEFAULT);
+  $demoDisciplines = (array) old('disciplines', $demo['disciplines'] ?? []);
 @endphp
 
 @section('content')
@@ -86,6 +88,30 @@
         @if ($errors->any())
           <div class="errors" role="alert"><p><b>Please fix the highlighted fields.</b></p></div>
         @endif
+
+        <fieldset>
+          <legend>Portfolio type</legend>
+          <div class="field">
+            <label for="d-type">What kind of portfolio?</label>
+            <select id="d-type" name="type" aria-describedby="d-type-help" @error('type') aria-invalid="true" @enderror>
+              @foreach ($types as $t)
+                <option value="{{ $t->slug }}" @selected($demoType === $t->slug)>{{ $t->icon }} {{ $t->name }}</option>
+              @endforeach
+            </select>
+            <p class="help" id="d-type-help">Decides the section names and wording — e.g. "Work" for creative, "Teaching" for education.</p>
+            @error('type')<p class="error">{{ $message }}</p>@enderror
+          </div>
+          <fieldset class="demo-disciplines">
+            <legend>Hybrid: which disciplines do you combine?</legend>
+            <div class="discipline-choices">
+              @foreach ($disciplineOptions as $slug => $name)
+                <label class="check"><input type="checkbox" name="disciplines[]" value="{{ $slug }}" @checked(in_array($slug, $demoDisciplines, true))> {{ $name }}</label>
+              @endforeach
+            </div>
+            @error('disciplines')<p class="error">{{ $message }}</p>@enderror
+            @error('disciplines.*')<p class="error">{{ $message }}</p>@enderror
+          </fieldset>
+        </fieldset>
 
         <fieldset>
           <legend>About you</legend>
