@@ -173,3 +173,35 @@ Any PHP 8.2+ host with MySQL works:
 5. If AI extraction is on, run `php artisan queue:work` under a process manager such as Supervisor or systemd.
 6. Configure a real `MAIL_MAILER` if you want contact-form emails. They are sent after the response, so they don't need the queue worker.
 7. Content changes show up immediately, with no rebuild or redeploy, because the public pages read the database on every request.
+
+### GitHub Actions (shared hosting)
+
+`.github/workflows/deploy.yml` runs on every push to `production`. It builds the assets, runs the tests, uploads the app over SSH with rsync, then runs `migrate --force` and `optimize` on the host. The server needs SSH, rsync and PHP 8.2+. It doesn't need Node or Composer.
+
+One-time setup:
+
+1. Create a deploy-only key pair on your machine: `ssh-keygen -t ed25519 -f deploy_key -N ""`.
+2. Add `deploy_key.pub` to the host's authorized keys (cPanel: **SSH Access → Manage SSH Keys → Import**, then **Authorize**; DirectAdmin: **SSH Keys → Paste key**).
+3. In GitHub, go to **Settings → Secrets and variables → Actions** and add these secrets:
+   - `SSH_HOST`, `SSH_PORT`, `SSH_USER`
+   - `SSH_KEY`: the contents of `deploy_key` (the private half). Delete the local file afterwards.
+   - `SSH_KNOWN_HOSTS`: the output of `ssh-keyscan -p <port> <host>`
+4. Optionally, add these variables:
+   - `DEPLOY_PATH`: the app directory relative to your home. Default: `portfolio`.
+   - `PHP_BIN`: the host's PHP 8.2+ CLI, if plain `php -v` shows an older version. Usually `/opt/cpanel/ea-php82/root/usr/bin/php` on cPanel or `/usr/local/php82/bin/php` on DirectAdmin.
+5. Create a MySQL database and user in the control panel.
+6. Push to `production`, or run the workflow by hand from the **Actions** tab. The first run uploads the code, then stops because `.env` is missing.
+7. On the server:
+   ```bash
+   cd ~/portfolio && cp .env.example .env
+   # edit .env: APP_ENV=production, APP_DEBUG=false, APP_URL, DB_*, MAIL_*
+   php artisan key:generate
+   ```
+   Re-run the workflow, then create the admin with `php artisan portfolio:admin you@example.com`.
+8. Point the domain's document root at `~/portfolio/public` by replacing `public_html` with a symlink. Keep the old one as a backup:
+   ```bash
+   mv ~/public_html ~/public_html.bak && ln -s ~/portfolio/public ~/public_html                       # cPanel, primary domain
+   mv ~/domains/example.com/public_html{,.bak} && ln -s ~/portfolio/public ~/domains/example.com/public_html   # DirectAdmin
+   ```
+
+If AI extraction is on and you have no process manager, add a cron job instead: `* * * * * cd ~/portfolio && php artisan queue:work --stop-when-empty`.
