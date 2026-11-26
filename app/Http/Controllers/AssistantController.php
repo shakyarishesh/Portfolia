@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 class AssistantController extends Controller
 {
+    //
     public function __invoke(Request $request, Assistant $assistant)
     {
         abort_unless($assistant->enabled(), 404);
