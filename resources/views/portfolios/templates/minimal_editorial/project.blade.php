@@ -12,7 +12,7 @@
     ];
     $prose = [
         'overview' => ['Overview', $project->description],
-        'problem' => ['Problem & objectives', $project->problem],
+        'problem' => [$portfolio->projectLabel('problem', 'Problem & objectives'), $project->problem],
     ];
     $facts = array_filter([
         'Role' => $project->role,
@@ -30,7 +30,7 @@
 
   <article class="me-article">
     <header class="me-article-head">
-      <p class="me-kicker"><a href="{{ route('home') }}#projects">Projects</a></p>
+      <p class="me-kicker"><a href="{{ route('home') }}#projects">{{ $portfolio->term('projects') }}</a></p>
       <h1 class="me-article-title">{{ $project->name }}</h1>
       @if ($project->tagline)<p class="me-lede">{{ $project->tagline }}</p>@endif
       @if ($project->live_url || $project->repo_url)
@@ -81,10 +81,11 @@
       @endif
 
       @if ($project->challenges)
-        <h2 id="challenges">Challenges &amp; solutions</h2>
+        <h2 id="challenges">{{ $portfolio->projectLabel('challenges', 'Challenges & solutions') }}</h2>
         @foreach (Markdown::paragraphs($project->challenges) as $para)<p>{!! $para !!}</p>@endforeach
       @endif
 
+      @include('portfolios.partials.project-details')
       @if ($highlights->isNotEmpty())
         <h2 id="highlights">Engineering highlights</h2>
         @foreach ($highlights as $h)
@@ -97,7 +98,7 @@
 
     @if ($project->screenshots->isNotEmpty())
       <section class="me-shots" aria-labelledby="shots-h">
-        <h2 id="shots-h">Screenshots</h2>
+        <h2 id="shots-h">{{ $portfolio->term('screenshots') }}</h2>
         @foreach ($project->screenshots as $shot)
           <figure>
             <a href="{{ $shot->url() }}"><img src="{{ $shot->url() }}" alt="{{ $shot->alt ?: $project->name.' screenshot' }}" loading="lazy"></a>

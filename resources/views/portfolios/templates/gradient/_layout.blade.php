@@ -20,6 +20,8 @@
 </head>
 <body class="gd-body page-{{ $page }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
+  @include('portfolios.partials.intro')
   <a class="gd-skip" href="#content">Skip to content</a>
 
   <header class="gd-header">
@@ -37,7 +39,7 @@
             @endforeach
           @else
             <li><a href="{{ $home }}">Home</a></li>
-            <li><a href="{{ $home }}#projects">Projects</a></li>
+            <li><a href="{{ $home }}#projects">{{ $portfolio->term('projects') }}</a></li>
             @isset($crumb)
               <li><a href="{{ $crumb[1] }}" @if ($page === 'posts') aria-current="page" @endif>{{ $crumb[0] }}</a></li>
             @endisset

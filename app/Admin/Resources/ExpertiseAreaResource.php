@@ -21,6 +21,11 @@ class ExpertiseAreaResource extends Resource
 
     public const NATURAL_KEY = ['title'];
 
+    public static function label(): string
+    {
+        return (\App\Support\CurrentPortfolio::get()?->hasModule('technical') ?? true) ? static::LABEL : 'Areas of expertise';
+    }
+
     public static function fields(): array
     {
         return [

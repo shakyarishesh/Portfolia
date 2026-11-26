@@ -27,7 +27,7 @@
 
     // About stat cards, counted from published content only.
     $stats = array_filter([
-        'Projects' => $projects->count(),
+        $portfolio->term('projects') => $projects->count(),
         'Skills' => $skillCategories->sum(fn ($c) => $c->skills->count()),
         'Roles' => $experiences->count(),
     ]);
@@ -207,8 +207,8 @@
                         <ul class="gd-chips" aria-label="Stack">@foreach ($p->technologies as $tech)<li>{{ $tech->name }}</li>@endforeach</ul>
                       @endif
                       <p class="gd-links">
-                        <a href="{{ route('projects.show', ['project' => $p]) }}">Case study<span class="sr-only">: {{ $p->name }}</span> →</a>
-                        @if ($p->live_url)<a href="{{ $p->live_url }}" target="_blank" rel="noopener">Live demo<span class="sr-only"> of {{ $p->name }} (opens in a new tab)</span> ↗</a>@endif
+                        <a href="{{ route('projects.show', ['project' => $p]) }}">{{ $portfolio->term('case_study') }}<span class="sr-only">: {{ $p->name }}</span> →</a>
+                        @if ($p->live_url)<a href="{{ $p->live_url }}" target="_blank" rel="noopener">{{ $portfolio->term('live') }}<span class="sr-only"> of {{ $p->name }} (opens in a new tab)</span> ↗</a>@endif
                         @if ($p->repo_url)<a href="{{ $p->repo_url }}" target="_blank" rel="noopener">Source<span class="sr-only"> of {{ $p->name }} (opens in a new tab)</span> ↗</a>@endif
                       </p>
                     </div>
@@ -385,6 +385,14 @@
           </div>
         </section>
         @break
+      @default
+        <section id="{{ $item['anchor'] }}" class="gd-section" aria-labelledby="{{ $head }}">
+          <div class="gd-wrap">
+            @if ($item['eyebrow'])<p class="gd-eyebrow">{{ $item['eyebrow'] }}</p>@endif
+            <h2 id="{{ $head }}" class="gd-h2">{{ $item['title'] }}</h2>
+            @include('portfolios.partials.text-section', ['key' => $item['key']])
+          </div>
+        </section>
     @endswitch
   @endforeach
 </main>

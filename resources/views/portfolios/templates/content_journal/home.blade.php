@@ -6,7 +6,7 @@
     $uses = trim((string) ($settings['uses'] ?? ''));
     $latest = $posts->take((int) ($settings['home_posts'] ?? 5));
     $keys = $sections->pluck('key');
-    $work = $sections->filter(fn ($s) => in_array($s->key, ['projects', 'experience', 'skills', 'education'], true));
+    $work = $sections->filter(fn ($s) => in_array($s->key, ['projects', 'experience', 'skills', 'education'], true) || \App\Models\Portfolio::isFreeTextSection($s->key));
     $contact = $sections->firstWhere('key', 'contact');
     $label = fn ($s) => $s->nav_label ?: $s->title;
 
@@ -160,6 +160,8 @@
               @endforeach
             </ul>
             @break
+          @default
+            @include('portfolios.partials.text-section', ['key' => $section->key])
         @endswitch
       </section>
     @endforeach

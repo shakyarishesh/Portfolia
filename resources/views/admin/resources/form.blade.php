@@ -1,6 +1,6 @@
 @extends('admin.layout')
-@section('title', $record ? 'Edit '.strtolower($resource::SINGULAR) : 'New '.strtolower($resource::SINGULAR))
-@section('crumbs')<a href="{{ route('admin.resources.index', $resource::SLUG) }}">{{ $resource::LABEL }}</a>@if ($record) / {{ $resource::title($record) }}@endif @endsection
+@section('title', $record ? 'Edit '.strtolower($resource::singular()) : 'New '.strtolower($resource::singular()))
+@section('crumbs')<a href="{{ route('admin.resources.index', $resource::SLUG) }}">{{ $resource::label() }}</a>@if ($record) / {{ $resource::title($record) }}@endif @endsection
 @section('actions')
   @if ($record && $resource::KEY === 'project')
     <a class="btn" href="{{ route('admin.projects.preview', $record) }}" target="_blank" rel="noopener">Preview ↗</a>
@@ -43,8 +43,9 @@
           <button class="btn" type="submit" data-loading="Uploading…">{{ $thumb ? 'Replace' : 'Upload' }} thumbnail</button>
         </form>
       </div>
+      @php $gallery = \App\Support\CurrentPortfolio::get()?->hasModule('technical') ?? true ? 'Screenshots' : 'Image gallery'; @endphp
       <div class="card stack">
-        <h2>Screenshots</h2>
+        <h2>{{ $gallery }}</h2>
         @php $shots = $record->media->where('collection', 'screenshot'); @endphp
         @if ($shots->isNotEmpty())
           <div class="thumbs">
@@ -58,13 +59,35 @@
         @endif
         <form method="post" action="{{ route('admin.projects.media.store', $record) }}" enctype="multipart/form-data" class="stack">
           @csrf <input type="hidden" name="collection" value="screenshot">
-          <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple required aria-label="Screenshots">
+          <input type="file" name="images[]" accept="image/png,image/jpeg,image/webp,image/gif" multiple required aria-label="{{ $gallery }}">
           <span class="small muted">Up to 10 at once · {{ config('portfolio.uploads.image_max_kb') / 1024 }} MB each.</span>
-          <button class="btn" type="submit" data-loading="Uploading…">Upload screenshots</button>
+          <button class="btn" type="submit" data-loading="Uploading…">Upload {{ strtolower($gallery) }}</button>
+        </form>
+      </div>
+      <div class="card stack">
+        <h2>Supporting documents</h2>
+        @php $docs = $record->media->where('collection', 'document'); @endphp
+        @if ($docs->isNotEmpty())
+          <ul class="stack" style="list-style:none;padding:0;margin:0">
+            @foreach ($docs as $doc)
+              <li class="stack">
+                <a href="{{ $doc->url() }}" target="_blank" rel="noopener">{{ $doc->alt ?: $doc->original_name }} ↗</a>
+                <form method="post" action="{{ route('admin.media.update', $doc) }}" class="stack">@csrf @method('PATCH')<input type="text" name="alt" value="{{ $doc->alt }}" placeholder="Title shown to visitors" aria-label="Document title"><button class="btn sm">Save title</button></form>
+                <form method="post" action="{{ route('admin.media.destroy', $doc) }}" data-confirm="Delete this document?">@csrf @method('DELETE')<button class="btn sm danger">Delete</button></form>
+              </li>
+            @endforeach
+          </ul>
+        @endif
+        <form method="post" action="{{ route('admin.projects.media.store', $record) }}" enctype="multipart/form-data" class="stack">
+          @csrf <input type="hidden" name="collection" value="document">
+          <input type="file" name="images[]" accept="application/pdf" multiple required aria-label="PDF documents">
+          <input type="text" name="alt" placeholder="Title, e.g. Campaign report (optional)" aria-label="Document title">
+          <span class="small muted">PDF only · up to {{ round(config('portfolio.uploads.resume_max_kb') / 1024) }} MB each. Reports, case studies, lesson plans … shown as downloads.</span>
+          <button class="btn" type="submit" data-loading="Uploading…">Upload documents</button>
         </form>
       </div>
     @elseif (! $record && $resource::KEY === 'project')
-      <div class="card small muted">Save the project first, then add a thumbnail and screenshots.</div>
+      <div class="card small muted">Save it first, then add a thumbnail, images and documents.</div>
     @endif
     @if ($resource::KEY === 'post')
       <div class="card stack">
@@ -95,7 +118,7 @@
       <form class="card" method="post" action="{{ route('admin.resources.destroy', [$resource::SLUG, $record->id]) }}" data-confirm="Delete “{{ $resource::title($record) }}”? You can restore it from the audit history.">
         @csrf @method('DELETE')
         <h2>Danger zone</h2>
-        <button class="btn danger" type="submit">Delete {{ strtolower($resource::SINGULAR) }}</button>
+        <button class="btn danger" type="submit">Delete {{ strtolower($resource::singular()) }}</button>
       </form>
     @endif
   </div>

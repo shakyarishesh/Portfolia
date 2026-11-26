@@ -26,6 +26,8 @@
 </head>
 <body class="pro-body page-{{ $page ?? 'home' }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
+  @include('portfolios.partials.intro')
   <a class="pro-skip" href="#content">Skip to main content</a>
 
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">

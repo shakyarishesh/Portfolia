@@ -6,12 +6,17 @@
   --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: ui-monospace, "JetBrains Mono", monospace;
   color-scheme: light;
 }
+/* Dark: the system setting, unless the switch in the sidebar picked a theme (data-theme on <html>, see partials/theme-init). */
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #0d0f16; --surface: #151824; --surface-2: #1c2030; --fg: #e8eaf2; --muted: #9298ad; --line: #272b3c;
+  :root:not([data-theme=light]) { --bg: #0d0f16; --surface: #151824; --surface-2: #1c2030; --fg: #e8eaf2; --muted: #9298ad; --line: #272b3c;
     --accent: #8b74ff; --accent-fg: #0d0f16; --accent-soft: #2a2350;
     --ok: #4fd18b; --ok-soft: #12301f; --warn: #f0b44c; --warn-soft: #33270f; --bad: #ff7a8a; --bad-soft: #3a1820; --info: #5cc3f5; --info-soft: #0f2a3a;
     --shadow: none; color-scheme: dark; }
 }
+:root[data-theme=dark] { --bg: #0d0f16; --surface: #151824; --surface-2: #1c2030; --fg: #e8eaf2; --muted: #9298ad; --line: #272b3c;
+    --accent: #8b74ff; --accent-fg: #0d0f16; --accent-soft: #2a2350;
+    --ok: #4fd18b; --ok-soft: #12301f; --warn: #f0b44c; --warn-soft: #33270f; --bad: #ff7a8a; --bad-soft: #3a1820; --info: #5cc3f5; --info-soft: #0f2a3a;
+    --shadow: none; color-scheme: dark; }
 * { box-sizing: border-box; margin: 0; }
 body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font); -webkit-font-smoothing: antialiased; }
 a { color: var(--accent); text-decoration: none; }
@@ -81,6 +86,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
 [aria-invalid=true] { border-color: var(--bad) !important; }
 .check { display: flex; gap: 8px; align-items: center; font-weight: 500; }
 .check input { width: 17px; height: 17px; accent-color: var(--accent); }
+fieldset.checks { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; min-width: 0; }
+fieldset.checks legend { width: 100%; padding: 0; margin-bottom: 6px; font-weight: 600; font-size: .9rem; }
 .form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
 .filters input[type=search] { max-width: 260px; }
@@ -192,3 +199,13 @@ fieldset.card legend { float: left; width: 100%; padding: 0; }
   .form-grid, .grid.cols-2 { grid-template-columns: 1fr; }
   td.actions { white-space: normal; }
 }
+
+/* dark mode switch (sidebar) */
+.theme-toggle { width: 100%; justify-content: space-between; }
+.theme-toggle [data-icon]::after { content: "☾"; }
+:root[data-theme=dark] .theme-toggle [data-icon]::after { content: "☀"; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme=light]) .theme-toggle [data-icon]::after { content: "☀"; } }
+.badge.type-badge { background: var(--accent-soft); color: var(--text); font-weight: 600; }
+table.matrix td { text-align: center; }
+table.matrix th[scope=col] { white-space: normal; min-width: 7rem; font-size: .85rem; }
+table.matrix input { width: 18px; height: 18px; accent-color: var(--accent); }

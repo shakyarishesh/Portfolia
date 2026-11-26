@@ -18,7 +18,7 @@
     <div class="techs">@foreach ($project->technologies as $t)<button type="button" data-tech="{{ mb_strtolower($t->name) }}" title="Show projects using {{ $t->name }}">{{ $t->name }}</button>@endforeach</div>
   @endif
   <div class="card-links">
-    <a class="live" href="{{ route('projects.show', $project) }}">Case study →</a>
+    <a class="live" href="{{ route('projects.show', $project) }}">{{ $portfolio->term('case_study') }} →</a>
     @if ($project->live_url)<a class="live" href="{{ $project->live_url }}" target="_blank" rel="noopener">Visit live ↗</a>@endif
     @if ($project->repo_url)<a class="live" href="{{ $project->repo_url }}" target="_blank" rel="noopener">Code ↗</a>@endif
   </div>

@@ -41,7 +41,7 @@ class MultiPortfolioTest extends TestCase
 
     public function test_username_format_reserved_words_and_case_insensitive_uniqueness(): void
     {
-        $this->assertTrue($this->valid('jenisha'));
+        $this->assertTrue($this->valid('hello'));
         $this->assertTrue($this->valid('sujan-shakya2'));
         foreach (['ab', '-abc', 'abc-', 'a--b', 'has space', 'UPPER', 'dot.name', str_repeat('a', 41)] as $bad) {
             $this->assertFalse($this->valid($bad), "{$bad} should be invalid");
@@ -189,7 +189,7 @@ class MultiPortfolioTest extends TestCase
         $this->assertSame('portfolios.templates.minimal_editorial.home', Templates::view('minimal_editorial', 'home'));
         $this->alice->update(['template' => 'nope', 'template_settings' => ['minimal_editorial' => ['accent' => '<script>', 'evil' => 'x']]]);
         $this->get('/alice')->assertOk(); // unknown template falls back to classic
-        $this->assertSame(['accent' => 'teal', 'theme' => 'dark', 'show_thumbnails' => true], $this->alice->settingsFor('minimal_editorial'));
+        $this->assertSame(['accent' => 'teal', 'theme' => 'dark', 'show_thumbnails' => true, 'intro' => true, 'intro_words' => null, 'cursor' => 'none', 'cursor_color' => 'electric'], $this->alice->settingsFor('minimal_editorial'));
     }
 
     public function test_content_writes_without_a_current_portfolio_are_refused(): void

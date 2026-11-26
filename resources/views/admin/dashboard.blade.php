@@ -1,12 +1,17 @@
 @extends('admin.layout')
 @section('title', 'Dashboard')
 @section('actions')
-  <a class="btn" href="{{ route('admin.imports.index') }}">Import a conversation</a>
+  @can('admin')<a class="btn" href="{{ route('admin.imports.index') }}">Import a conversation</a>@endcan
   <a class="btn primary" href="{{ route('home') }}" target="_blank" rel="noopener">View site ↗</a>
 @endsection
 @section('content')
 <div class="grid cols-4">
-  <div class="card stat"><a href="{{ route('admin.proposals.index') }}"><b>{{ $pendingProposals }}</b><span>proposed changes to review</span></a></div>
+  @can('admin')
+    <div class="card stat"><a href="{{ route('admin.proposals.index') }}"><b>{{ $pendingProposals }}</b><span>proposed changes to review</span></a></div>
+  @else
+    @php $mine = \App\Support\CurrentPortfolio::get(); @endphp
+    <div class="card stat"><b>{{ \App\Models\Portfolio::STATUSES[$mine?->status] ?? '—' }}</b><span>{{ $mine?->isPublic() ? 'your portfolio is live' : ($mine?->status === 'pending' ? 'an admin reviews it before it goes live' : 'not visible to the public') }}</span></div>
+  @endcan
   <div class="card stat"><b>{{ $needsReview }}</b><span>items marked “needs review” (hidden from the site)</span></div>
   <div class="card stat"><a href="{{ route('admin.messages.index', ['unread' => 1]) }}"><b>{{ $unreadMessages }}</b><span>unread messages</span></a></div>
   <div class="card stat"><b>{{ $completeness['percent'] }}%</b><span>profile completeness</span></div>
@@ -37,7 +42,7 @@
         @foreach ($stats as $row)
           @php $r = $row['resource']; $c = $row['counts']; @endphp
           <tr>
-            <td><a href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::LABEL }}</a></td>
+            <td><a href="{{ route('admin.resources.index', $r::SLUG) }}">{{ $r::label() }}</a></td>
             <td>{{ $c['published'] ?? 0 }}</td>
             <td>{{ $c['draft'] ?? 0 }}</td>
             <td>@if ($c['needs_review'] ?? 0)<a href="{{ route('admin.resources.index', [$r::SLUG, 'status' => 'needs_review']) }}"><span class="badge needs_review">{{ $c['needs_review'] }}</span></a>@else 0 @endif</td>

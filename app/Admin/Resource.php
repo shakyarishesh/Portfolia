@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
  * One editable content type. Fields drive the admin form, server-side validation,
  * the import review screen and the AI extraction schema, so they live in one place.
  *
- * Field types: text, textarea, url, email, date, datetime, number, select, checkbox, lines (JSON list), tags (technologies).
+ * Field types: text, textarea, url, email, date, datetime, number, select, checkbox, checkboxes (list of options), lines (JSON list), tags (technologies).
  */
 abstract class Resource
 {
@@ -45,6 +45,17 @@ abstract class Resource
 
     /** @return array<string, callable(Model): string|string> list column => label */
     abstract public static function columns(): array;
+
+    /** Name shown in the admin (sidebar, list title). Projects use the portfolio type's own word ("Campaigns" …). */
+    public static function label(): string
+    {
+        return static::LABEL;
+    }
+
+    public static function singular(): string
+    {
+        return static::SINGULAR;
+    }
 
     public static function query(): Builder
     {
@@ -120,8 +131,8 @@ abstract class Resource
 
         // Unchecked checkboxes are absent from the request.
         foreach ($fields as $name => $field) {
-            if ($field['type'] === 'checkbox' && ! array_key_exists($name, $data)) {
-                $record->{$name} = false;
+            if (in_array($field['type'], ['checkbox', 'checkboxes'], true) && ! array_key_exists($name, $data)) {
+                $record->{$name} = $field['type'] === 'checkbox' ? false : [];
             }
         }
 

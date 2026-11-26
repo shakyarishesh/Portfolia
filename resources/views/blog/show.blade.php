@@ -33,6 +33,7 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @if ($preview)
     <div class="preview-bar" role="status">Preview — status: <b>{{ $post->status }}</b>@if ($post->published_at?->isFuture()), scheduled for {{ $post->published_at->format('j M Y H:i') }}@endif. <a href="{{ route('admin.resources.edit', ['posts', $post->id]) }}">Back to editor</a></div>
   @endif

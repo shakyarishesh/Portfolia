@@ -97,7 +97,7 @@ class PortfolioController extends Controller
 
     public function renderProject(Project $project, bool $preview)
     {
-        $project->load(['technologies', 'thumbnail', 'screenshots', 'experience']);
+        $project->load(['technologies', 'thumbnail', 'screenshots', 'experience', 'documents']);
         $highlights = Achievement::published()->ordered()->where('project_id', $project->id)->where('kind', 'highlight')->get();
 
         // Related: other published projects ranked by how many technologies they share.

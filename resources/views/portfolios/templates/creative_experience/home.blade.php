@@ -85,7 +85,7 @@
       @include('portfolios.templates.creative_experience.sections.writing')
     @endif
     @if ($section->key !== 'home' || $hasAbout)
-      @include('portfolios.templates.creative_experience.sections.'.$section->key, ['section' => $section])
+      @include(\App\Models\Portfolio::isFreeTextSection($section->key) ? 'portfolios.templates.creative_experience.sections._text' : 'portfolios.templates.creative_experience.sections.'.$section->key, ['section' => $section])
     @endif
   @endforeach
   @if ($hasWriting && ! $sections->contains('key', 'contact'))

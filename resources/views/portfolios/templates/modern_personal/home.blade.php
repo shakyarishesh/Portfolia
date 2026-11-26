@@ -273,6 +273,8 @@
               </form>
             @endif
             @break
+          @default
+            @include('portfolios.partials.text-section', ['key' => $b['key']])
         @endswitch
       </div>
     </section>

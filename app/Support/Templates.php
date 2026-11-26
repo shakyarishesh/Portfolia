@@ -38,6 +38,23 @@ final class Templates
         return array_filter(self::all(), fn ($t) => $t['active'] ?? true);
     }
 
+    /**
+     * Templates compatible with a portfolio type (Admin → Portfolio types), in the type's order. $keep (e.g. the
+     * portfolio's current template) is always included, so an existing choice never disappears.
+     */
+    public static function forType(?string $type, array $keep = []): array
+    {
+        $compatible = (array) (\App\Models\PortfolioType::query()->where('slug', (string) $type)->first()?->templates ?? []);
+        if ($compatible === []) {
+            return self::available();
+        }
+
+        // In the type's recommended order, then any kept template that isn't compatible.
+        $keys = array_unique([...$compatible, ...$keep]);
+
+        return array_filter(array_merge(array_flip($keys), self::available()), fn ($t, $k) => in_array($k, $keys, true) && is_array($t), ARRAY_FILTER_USE_BOTH);
+    }
+
     public static function exists(string $key): bool
     {
         return array_key_exists($key, self::available());
@@ -72,11 +89,36 @@ final class Templates
         return "portfolio_preview.{$portfolio->id}";
     }
 
+    /** Settings schema of a template: its own settings plus the ones every template shares (config portfolio.shared_settings). */
+    public static function fields(string $key): array
+    {
+        $shared = config('portfolio.shared_settings', []);
+        foreach (self::meta($key)['shared_defaults'] ?? [] as $name => $default) {
+            $shared[$name]['default'] = $default; // e.g. classic starts with the cursor trail on
+        }
+
+        return (self::meta($key)['settings'] ?? []) + $shared;
+    }
+
+    /** @return list<string> names of the shared settings (stored under template_settings._shared) */
+    public static function sharedKeys(): array
+    {
+        return array_keys(config('portfolio.shared_settings', []));
+    }
+
+    /** Welcome-intro words from the settings' "intro_words" (one per line), else the default list. */
+    public static function introWords(array $settings): array
+    {
+        $words = array_filter(array_map(fn ($w) => mb_substr(trim($w), 0, 40), preg_split('/\R/', (string) ($settings['intro_words'] ?? ''))), 'strlen');
+
+        return array_slice(array_values($words) ?: config('portfolio.intro_words'), 0, 20);
+    }
+
     /** Stored values merged over defaults; unknown keys dropped. */
     public static function settings(string $key, array $stored): array
     {
         $out = [];
-        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+        foreach (self::fields($key) as $name => $field) {
             $value = $stored[$name] ?? $field['default'] ?? null;
             if (($field['type'] ?? null) === 'select' && ! array_key_exists((string) $value, $field['options'])) {
                 $value = $field['default'];
@@ -91,7 +133,7 @@ final class Templates
     public static function rules(string $key): array
     {
         $rules = ['settings' => ['nullable', 'array']];
-        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+        foreach (self::fields($key) as $name => $field) {
             $rules["settings.{$name}"] = match ($field['type']) {
                 'boolean' => ['nullable', 'boolean'],
                 'select' => ['nullable', Rule::in(array_keys($field['options']))],
@@ -107,7 +149,7 @@ final class Templates
     public static function clean(string $key, array $input): array
     {
         $out = [];
-        foreach (self::meta($key)['settings'] ?? [] as $name => $field) {
+        foreach (self::fields($key) as $name => $field) {
             $out[$name] = $field['type'] === 'boolean' ? ! empty($input[$name]) : ($input[$name] ?? $field['default'] ?? null);
         }
 

@@ -16,6 +16,8 @@
 </head>
 <body class="me theme-{{ $settings['theme'] ?? 'dark' }} accent-{{ $settings['accent'] ?? 'teal' }} page-{{ $page ?? 'home' }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
+  @include('portfolios.partials.intro')
   <a class="me-skip" href="#content">Skip to content</a>
   @if (($page ?? 'home') === 'home')
     @yield('body')

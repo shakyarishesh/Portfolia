@@ -25,7 +25,63 @@ class Project extends Model
         'is_current' => 'boolean',
         'is_featured' => 'boolean',
         'features' => 'array',
+        'details' => 'array',
     ];
+
+    /** Profession-specific fields (config portfolio.project_details) kept in the `details` JSON column. */
+    public static function detailKeys(): array
+    {
+        return array_keys(config('portfolio.project_details', []));
+    }
+
+    // $project->client etc. read and write `details`, so forms, imports and views treat them like columns.
+    // Keys a form doesn't show are left alone, so switching portfolio type never loses them.
+    public function getAttribute($key)
+    {
+        if (is_string($key) && in_array($key, self::detailKeys(), true)) {
+            return $this->details[$key] ?? null;
+        }
+
+        return parent::getAttribute($key);
+    }
+
+    // Laravel only mass-assigns real columns; detail keys are virtual columns of `details`.
+    protected function isGuardableColumn($key)
+    {
+        return in_array($key, self::detailKeys(), true) || parent::isGuardableColumn($key);
+    }
+
+    public function setAttribute($key, $value)
+    {
+        if (is_string($key) && in_array($key, self::detailKeys(), true)) {
+            $details = (array) $this->details;
+            if ($value === null || $value === '' || $value === []) {
+                unset($details[$key]);
+            } else {
+                $details[$key] = $value;
+            }
+
+            return parent::setAttribute('details', $details ?: null);
+        }
+
+        return parent::setAttribute($key, $value);
+    }
+
+    /** "Conversion rate: 4.2%" lines → [label, value, percent|null]; lines without a colon are skipped. */
+    public function metricRows(): array
+    {
+        $rows = [];
+        foreach ((array) $this->metrics as $line) {
+            if (! str_contains((string) $line, ':')) {
+                continue;
+            }
+            [$label, $value] = array_map('trim', explode(':', (string) $line, 2));
+            preg_match('/^([+-]?\d+(?:\.\d+)?)\s*%$/', $value, $m);
+            $rows[] = [$label, $value, isset($m[1]) ? max(0, min(100, abs((float) $m[1]))) : null];
+        }
+
+        return $rows;
+    }
 
     public function getRouteKeyName(): string
     {
@@ -55,6 +111,12 @@ class Project extends Model
     public function screenshots(): MorphMany
     {
         return $this->media()->where('collection', 'screenshot');
+    }
+
+    /** Supporting documents (PDF), shown as downloads on the project page. */
+    public function documents(): MorphMany
+    {
+        return $this->media()->where('collection', 'document');
     }
 
     public function period(): string

@@ -21,6 +21,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
         'is_admin',
     ];
@@ -47,5 +48,19 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];
+    }
+
+    /** Portfolios this user owns (and can edit in the portal). */
+    public function portfolios(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Portfolio::class);
+    }
+
+    /** "+977 980-000 0000" → "+9779800000000"; null when blank. */
+    public static function normalizePhone(?string $phone): ?string
+    {
+        $phone = preg_replace('/(?!^\+)[^\d]/', '', trim((string) $phone));
+
+        return $phone === '' || $phone === '+' ? null : $phone;
     }
 }

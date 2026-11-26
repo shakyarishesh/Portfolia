@@ -19,6 +19,8 @@
 </head>
 <body class="pc palette-{{ $palette }} page-{{ $page ?? 'home' }}" data-palette="{{ $palette }}" data-deco="{{ ($settings['decorations'] ?? true) ? 'on' : 'off' }}">
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
+  @include('portfolios.partials.intro')
   <a class="pc-skip" href="#content">Skip to content</a>
 
   <header class="pc-bar">

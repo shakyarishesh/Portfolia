@@ -42,10 +42,12 @@ class ApplicationTest extends TestCase
     private function payload(array $overrides = []): array
     {
         return $overrides + [
+            'type' => 'technical',
             'username' => 'Dana-Dev',
             'template' => 'professional',
             'full_name' => 'Dana Developer', 'headline' => 'Backend Developer', 'intro' => 'I build APIs.', 'about' => "Para one.\n\nPara two.",
             'location' => 'Kathmandu', 'email' => 'dana@example.test', 'phone' => '+977 9800000000', 'show_phone' => '1', 'open_to_work' => '1',
+            'password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1',
             'experience' => [
                 ['company' => 'Acme', 'company_url' => 'https://acme.test', 'role' => 'Engineer', 'employment_type' => 'full_time', 'location' => 'Remote',
                     'start_date' => '2022-01-01', 'end_date' => '', 'is_current' => '1', 'summary' => 'Built things.', 'highlights' => "Shipped X\nScaled Y", 'technologies' => 'Laravel, MySQL'],
@@ -70,7 +72,7 @@ class ApplicationTest extends TestCase
 
     public function test_form_renders_every_group_and_template(): void
     {
-        $this->get('/create')->assertOk()
+        $this->get('/create?type=technical')->assertOk()
             ->assertSee(url('/').'/', false)->assertSee('name="experience[0][company]"', false)->assertSee('name="testimonials[0][quote]"', false)
             ->assertSee('experience[__INDEX__][company]', false)->assertSee('templates/gradient/preview.svg')->assertSee('name="website"', false);
     }
@@ -88,7 +90,11 @@ class ApplicationTest extends TestCase
 
         $this->assertSame(2, Portfolio::count());
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
-        $this->assertSame(['pending', 'professional', 'Dana Developer', null, null], [$p->status, $p->template, $p->name, $p->user_id, $p->published_at]);
+        $this->assertSame(['pending', 'professional', 'Dana Developer', null], [$p->status, $p->template, $p->name, $p->published_at]);
+        // The applicant now has their own login (owner of just this portfolio) and is signed in.
+        $owner = User::where('email', 'dana@example.test')->sole();
+        $this->assertSame([$owner->id, false, '+9779800000000'], [$p->user_id, $owner->is_admin, $owner->phone]);
+        $this->assertAuthenticatedAs($owner);
         $this->assertSame($before, $this->counts($this->existing), 'other portfolios untouched');
 
         CurrentPortfolio::using($p, function () {
@@ -112,6 +118,8 @@ class ApplicationTest extends TestCase
     {
         $this->post('/create', $this->payload())->assertRedirect('/create/submitted');
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
+        $this->get('/dana-dev')->assertOk()->assertSee('PREVIEW'); // the signed-in applicant previews their own
+        auth()->logout();
         $this->get('/dana-dev')->assertNotFound();
 
         $this->admin();
@@ -196,8 +204,41 @@ class ApplicationTest extends TestCase
         $this->assertSame(1, Portfolio::count());
 
         // The form re-renders the submitted rows with the error beside the field.
-        $this->followingRedirects()->from('/create')->post('/create', $payload)
+        $this->followingRedirects()->from('/create?type=technical')->post('/create', $payload)
             ->assertSee('value="Bad"', false)->assertSee('id="projects-1-live_url-error"', false)->assertSee('live url (project 2)');
+    }
+
+    public function test_present_end_date_marks_the_entry_current_and_drops_any_end_date(): void
+    {
+        $this->withoutMiddleware(ThrottleRequests::class);
+        $this->get('/create?type=technical')->assertSee('name="experience[0][is_current]"', false)->assertSee('name="projects[0][is_current]"', false)->assertSee('data-present', false);
+
+        $this->post('/create', $this->payload([
+            // A stale end date before "Present" was ticked (it would also fail after_or_equal) is ignored.
+            'experience' => [['company' => 'Acme', 'role' => 'Engineer', 'employment_type' => 'full_time', 'start_date' => '2022-01-01', 'end_date' => '2021-01-01', 'is_current' => '1']],
+            'projects' => [['name' => 'Rocket', 'start_date' => '2023-01-01', 'is_current' => '1'], ['name' => 'Done', 'start_date' => '2023-01-01', 'end_date' => '2023-06-01']],
+        ]))->assertSessionHasNoErrors()->assertRedirect(route('apply.submitted'));
+
+        CurrentPortfolio::using(Portfolio::where('username', 'dana-dev')->firstOrFail(), function () {
+            $job = Experience::firstOrFail();
+            $this->assertTrue($job->is_current);
+            $this->assertNull($job->end_date);
+            $this->assertSame('Jan 2022 – Present', $job->period());
+            $this->assertSame([true, false], Project::orderBy('sort_order')->pluck('is_current')->all());
+            $this->assertNull(Project::where('name', 'Rocket')->value('end_date'));
+        });
+    }
+
+    public function test_errors_stay_on_their_row_when_blank_rows_and_gaps_come_first(): void
+    {
+        // Rows added/removed with JS can arrive as [0 => blank, 3 => filled]: the filled one is "job 1" and keeps its date.
+        $payload = $this->payload(['experience' => [
+            0 => ['company' => '', 'role' => '', 'employment_type' => 'full_time'],
+            3 => ['company' => 'Hajir', 'role' => '', 'employment_type' => 'full_time', 'start_date' => '2026-03-01', 'end_date' => '2026-11-18'],
+        ]]);
+        $this->post('/create', $payload)->assertSessionHasErrors('experience.0.role')->assertSessionDoesntHaveErrors(['experience.0.start_date', 'experience.1.start_date']);
+        $this->followingRedirects()->from('/create?type=technical')->post('/create', $payload)
+            ->assertSee('value="2026-03-01"', false)->assertSee('id="experience-0-role-error"', false)->assertDontSee('start date (job');
     }
 
     public function test_too_many_rows_are_rejected(): void
@@ -223,6 +264,7 @@ class ApplicationTest extends TestCase
     public function test_admin_routes_need_an_admin(): void
     {
         $this->post('/create', $this->payload());
+        auth()->logout();
         $p = Portfolio::where('username', 'dana-dev')->firstOrFail();
         $routes = [['get', '/admin/applications'], ['get', "/admin/applications/{$p->id}"],
             ['post', "/admin/applications/{$p->id}/approve"], ['post', "/admin/applications/{$p->id}/reject"]];

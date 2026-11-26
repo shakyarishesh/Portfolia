@@ -283,6 +283,8 @@
               <p class="me-muted">Find me through the links on this page.</p>
             @endif
             @break
+          @default
+            @include('portfolios.partials.text-section', ['key' => $item['key']])
         @endswitch
       </section>
     @endforeach

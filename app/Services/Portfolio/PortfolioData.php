@@ -45,7 +45,8 @@ class PortfolioData
             'contact' => true,
         ];
         $visible = Section::query()->ordered()->where('is_visible', true)->get();
-        $sections = $visible->filter(fn (Section $s) => $hasContent[$s->key] ?? false)->values();
+        // Free-text sections (Teaching philosophy, custom ones …) show when they have text.
+        $sections = $visible->filter(fn (Section $s) => $hasContent[$s->key] ?? (\App\Models\Portfolio::isFreeTextSection($s->key) && filled($s->body)))->values();
         $enabled = $visible->pluck('key');
         $posts = $enabled->contains('blog') ? Post::live()->kind('article')->with('cover')->newest()->limit(10)->get() : collect();
         $notes = $enabled->contains('notes') ? Post::live()->kind('note')->orderBy('title')->get() : collect();

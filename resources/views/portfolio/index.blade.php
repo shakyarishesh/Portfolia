@@ -8,7 +8,9 @@
 <html lang="en">
 <head>
   @include('portfolio.partials.head', ['canonical' => route('home')])
-  <script>try { if (!localStorage.getItem('seenIntro') && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro'); } catch (e) {}</script>
+  @if (($settings['intro'] ?? true) && empty($demo))
+  <script>try { if (!localStorage.getItem(@json('seenIntro:'.$portfolio->username)) && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro'); } catch (e) {}</script>
+  @endif
   <script type="application/ld+json">{!! json_encode(array_filter([
       '@context' => 'https://schema.org',
       '@type' => 'Person',
@@ -26,12 +28,15 @@
 </head>
 <body>
   @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   <a class="skip" href="#{{ $sections->first()->key }}">Skip to content</a>
-  <div class="intro-screen" aria-hidden="true"><span></span></div>
+  <div class="intro-screen" aria-hidden="true" data-words="{{ json_encode(\App\Support\Templates::introWords($settings ?? [])) }}" data-seen-key="seenIntro:{{ $portfolio->username }}"><span></span></div>
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><div class="grid"></div></div>
+  @if (($settings['cursor'] ?? null) === 'ring')
   <div class="cursor-glow" aria-hidden="true"></div>
   <div class="cursor-ring" aria-hidden="true"></div>
   <div class="cursor-dot" aria-hidden="true"></div>
+  @endif
 
   <header class="nav">
     <a class="logo" href="#{{ $sections->first()->key }}" data-tab="{{ $sections->first()->key }}" aria-label="{{ $profile->full_name }} — home">{{ Str::lower(collect($names)->map(fn ($n) => Str::substr($n, 0, 1))->implode('')) }}<span>.</span></a>
@@ -43,7 +48,7 @@
     </nav>
     <div class="nav-tools">
       @if ($hasBlog)<a class="nav-link" href="{{ route('blog.index') }}">Blog</a>@endif
-      @if (empty($demo))<a class="nav-link" href="{{ route('playground') }}">API</a>@endif{{-- no playground in the session-only demo --}}
+      @if (empty($demo) && $portfolio->hasModule('technical'))<a class="nav-link" href="{{ route('playground') }}">API</a>@endif{{-- no playground in the demo; a developer-only extra --}}
       <button class="icon-btn" type="button" data-terminal-open aria-label="Open interactive terminal" title="Terminal ( ` )"><span aria-hidden="true">&gt;_</span></button>
       <details class="accent-picker">
         <summary class="icon-btn" aria-label="Choose accent colour" title="Accent colour"><span class="swatch" aria-hidden="true"></span></summary>
@@ -69,7 +74,7 @@
   <main>
     @foreach ($sections as $section)
       <section class="panel" id="{{ $section->key }}" data-fx="{{ $fx[$section->key] ?? 'rise' }}" aria-label="{{ $section->nav_label }}">
-        @include('portfolio.sections.'.$section->key, ['section' => $section, 'md' => $md, 'names' => $names])
+        @include(\App\Models\Portfolio::isFreeTextSection($section->key) ? 'portfolio.sections._text' : 'portfolio.sections.'.$section->key, ['section' => $section, 'md' => $md, 'names' => $names])
       </section>
     @endforeach
   </main>

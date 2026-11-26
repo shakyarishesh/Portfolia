@@ -8,9 +8,13 @@
     <h2>Details</h2>
     @include('admin.portfolios._fields')
   </div>
+  <div class="card">
+    <h2>Portfolio type</h2>
+    @include('admin.portfolios._type-fields')
+  </div>
   <fieldset class="card">
     <legend><h2>Template</h2></legend>
-    <p class="small muted">You can change it later; switching templates never changes the content.</p>
+    <p class="small muted">You can change it later; switching templates never changes the content. It must be one recommended for the type (see Portfolio types).</p>
     <div class="template-grid">
       @foreach ($templates as $key => $meta)
         <label class="template-card selectable">

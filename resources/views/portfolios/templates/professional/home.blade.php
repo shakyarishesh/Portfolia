@@ -11,7 +11,7 @@
     $skillCount = $skillCategories->flatMap->skills->count();
     $stats = ($settings['show_stats'] ?? true) ? array_filter([
         'Years of experience' => $years ? $years.'+' : null,
-        'Projects shipped' => $projects->count() ?: null,
+        ($portfolio->hasModule('technical') ? 'Projects shipped' : $portfolio->term('projects')) => $projects->count() ?: null,
         'Skills & tools' => $skillCount ?: null,
     ]) : [];
     $paragraphs = $profile->aboutParagraphs();
@@ -85,7 +85,7 @@
 
         <p class="pro-ctas">
           @if ($contactHref)<a class="pro-btn pro-btn-primary" href="{{ $contactHref }}">{!! $icon('mail') !!}Contact Me</a>@endif
-          @if ($has('projects'))<a class="pro-btn pro-btn-ghost" href="#projects">View Projects{!! $icon('arrow') !!}</a>@endif
+          @if ($has('projects'))<a class="pro-btn pro-btn-ghost" href="#projects">View {{ $portfolio->term('projects') }}{!! $icon('arrow') !!}</a>@endif
           @if ($profile->resume)<a class="pro-btn pro-btn-link" href="{{ route('resume') }}">{!! $icon('download') !!}Download CV<span class="pro-sr"> (PDF)</span></a>@endif
         </p>
       </div>
@@ -222,8 +222,8 @@
                         </ul>
                       @endif
                       <p class="pro-card-links">
-                        <a href="{{ route('projects.show', ['project' => $p]) }}">Case study<span class="pro-sr">: {{ $p->name }}</span>{!! $icon('arrow') !!}</a>
-                        @if ($p->live_url)<a href="{{ $p->live_url }}" target="_blank" rel="noopener">Live demo<span class="pro-sr"> of {{ $p->name }} (opens in a new tab)</span>{!! $icon('external') !!}</a>@endif
+                        <a href="{{ route('projects.show', ['project' => $p]) }}">{{ $portfolio->term('case_study') }}<span class="pro-sr">: {{ $p->name }}</span>{!! $icon('arrow') !!}</a>
+                        @if ($p->live_url)<a href="{{ $p->live_url }}" target="_blank" rel="noopener">{{ $portfolio->term('live') }}<span class="pro-sr"> of {{ $p->name }} (opens in a new tab)</span>{!! $icon('external') !!}</a>@endif
                         @if ($p->repo_url)<a href="{{ $p->repo_url }}" target="_blank" rel="noopener">Source<span class="pro-sr"> of {{ $p->name }} (opens in a new tab)</span>{!! $icon('code') !!}</a>@endif
                       </p>
                     </div>
@@ -367,6 +367,8 @@
               @endif
             </div>
             @break
+          @default
+            @include('portfolios.partials.text-section', ['key' => $item['section']])
         @endswitch
       </div>
     </section>

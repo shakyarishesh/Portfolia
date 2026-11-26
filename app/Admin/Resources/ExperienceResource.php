@@ -36,7 +36,7 @@ class ExperienceResource extends Resource
             'is_current' => ['type' => 'checkbox', 'label' => 'I currently work here', 'rules' => ['nullable', 'boolean']],
             'summary' => ['type' => 'textarea', 'label' => 'Summary', 'rules' => ['nullable', 'string', 'max:2000']],
             'highlights' => ['type' => 'lines', 'label' => 'Responsibilities & achievements', 'help' => 'One per line.', 'rules' => ['nullable', 'string', 'max:5000']],
-            'technologies' => ['type' => 'tags', 'label' => 'Tech stack', 'help' => 'Comma separated.', 'rules' => ['nullable', 'string', 'max:1000']],
+            'technologies' => ['type' => 'tags', 'label' => (\App\Support\CurrentPortfolio::get()?->hasModule('technical') ?? true) ? 'Tech stack' : 'Skills & tools used', 'help' => 'Comma separated.', 'rules' => ['nullable', 'string', 'max:1000']],
             'status' => static::statusField(),
             'source_note' => static::sourceNoteField(),
         ];

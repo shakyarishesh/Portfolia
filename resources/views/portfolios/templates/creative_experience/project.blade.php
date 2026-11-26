@@ -15,12 +15,12 @@
     // Case-study chapters, numbered in the order they appear.
     $chapters = array_filter([
         'overview' => $project->description ? 'Overview' : null,
-        'problem' => $project->problem ? 'The problem' : null,
+        'problem' => $project->problem ? $portfolio->projectLabel('problem', 'The problem') : null,
         'built' => $project->features ? 'What I built' : null,
         'architecture' => ($project->architecture || $project->diagram) ? 'Architecture' : null,
-        'challenges' => $project->challenges ? 'Challenges & solutions' : null,
+        'challenges' => $project->challenges ? $portfolio->projectLabel('challenges', 'Challenges & solutions') : null,
         'highlights' => $highlights->isNotEmpty() ? 'Engineering highlights' : null,
-        'screens' => $project->screenshots->isNotEmpty() ? 'Screens' : null,
+        'screens' => $project->screenshots->isNotEmpty() ? ($portfolio->hasModule('technical') ? 'Screens' : 'Gallery') : null,
     ]);
     $num = fn (string $key) => sprintf('%02d', array_search($key, array_keys($chapters), true) + 1);
 @endphp
@@ -109,6 +109,8 @@
             @foreach (Markdown::paragraphs($project->challenges) as $p)<p>{!! $p !!}</p>@endforeach
           </section>
         @endisset
+
+        @include('portfolios.partials.project-details')
 
         @isset($chapters['highlights'])
           <section class="chapter-block" aria-labelledby="highlights" data-reveal>
