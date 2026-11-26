@@ -1,11 +1,11 @@
 @extends('admin.layout')
-@section('title', $resource::LABEL)
+@section('title', $resource::label())
 @section('actions')
-  <a class="btn primary" href="{{ route('admin.resources.create', $resource::SLUG) }}">+ Add {{ strtolower($resource::SINGULAR) }}</a>
+  <a class="btn primary" href="{{ route('admin.resources.create', $resource::SLUG) }}">+ Add {{ strtolower($resource::singular()) }}</a>
 @endsection
 @section('content')
 <form class="filters" method="get" role="search">
-  <input type="search" name="q" value="{{ request('q') }}" placeholder="Search {{ strtolower($resource::LABEL) }}…" aria-label="Search">
+  <input type="search" name="q" value="{{ request('q') }}" placeholder="Search {{ strtolower($resource::label()) }}…" aria-label="Search">
   <select name="status" aria-label="Status">
     <option value="">All statuses</option>
     @foreach (\App\Support\ContentStatus::LABELS as $k => $l)<option value="{{ $k }}" @selected(request('status') === $k)>{{ $l }}</option>@endforeach
@@ -22,7 +22,7 @@
 
 <div class="card" style="padding:0">
   @if ($records->isEmpty())
-    <div class="empty">Nothing here yet. <a href="{{ route('admin.resources.create', $resource::SLUG) }}">Add the first {{ strtolower($resource::SINGULAR) }}</a>.</div>
+    <div class="empty">Nothing here yet. <a href="{{ route('admin.resources.create', $resource::SLUG) }}">Add the first {{ strtolower($resource::singular()) }}</a>.</div>
   @else
     <div class="table-wrap"><table>
       <thead><tr>

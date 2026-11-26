@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Section extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable;
 
     public const KEYS = ['home', 'experience', 'projects', 'skills', 'education', 'contact'];

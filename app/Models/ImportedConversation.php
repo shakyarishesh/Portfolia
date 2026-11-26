@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ImportedConversation extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     protected $guarded = ['id'];
 
     protected $casts = ['started_at' => 'datetime', 'transcript' => 'array'];

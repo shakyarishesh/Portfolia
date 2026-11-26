@@ -1,0 +1,94 @@
+/* /create application form (resources/views/site/apply). Base form styles live in site.css. */
+.apply { padding-block: 2rem; }
+.apply fieldset { min-width: 0; } /* default min-content would overflow on phones */
+.apply .lead { font-size: 1.1rem; color: var(--muted); max-width: 65ch; }
+.apply .grid-2 > .field.wide { grid-column: 1 / -1; }
+.apply .check { display: flex; gap: .5rem; align-items: center; font-weight: 500; }
+.apply [aria-invalid=true] { border-color: var(--danger); }
+.hp { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+
+.error-summary { border: 2px solid var(--danger); border-radius: var(--radius); background: var(--bad-soft); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.error-summary h2 { margin: 0 0 .5rem; font-size: 1.1rem; color: var(--danger); }
+
+.url-input { display: flex; align-items: stretch; }
+.url-input span { display: flex; align-items: center; padding: 0 .6rem; border: 1px solid var(--input-border); border-right: 0; border-radius: 6px 0 0 6px; background: var(--bg); color: var(--muted); white-space: nowrap; max-width: 55%; overflow: hidden; text-overflow: ellipsis; }
+.url-input input { flex: 1 1 8rem; width: auto; min-width: 0; border-radius: 0 6px 6px 0; }
+
+fieldset.templates { border: 0; padding: 0; margin: 0; }
+.template-choices { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.template-choice { position: relative; display: flex; flex-direction: column; gap: .35rem; padding: .6rem; border: 2px solid var(--border); border-radius: var(--radius); font-weight: 400; cursor: pointer; }
+.template-choice input { position: absolute; top: 1rem; left: 1rem; width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.template-choice img { border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 10; object-fit: cover; width: 100%; }
+.template-choice .template-name { font-weight: 700; }
+.template-choice .help { font-size: .85rem; color: var(--muted); }
+.template-choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.template-choice:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.repeat-rows { counter-reset: row; }
+.repeat-row { counter-increment: row; border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+.repeat-row:first-child { border-top: 0; margin-top: 0; }
+.repeat-row h3 { margin: 0 0 .75rem; font-size: 1rem; }
+.repeat-row h3::after { content: " " counter(row); }
+.repeat-row [data-remove] { margin-bottom: .5rem; }
+.repeat [data-add] { margin-top: .75rem; }
+
+.submit { border-top: 1px solid var(--border); padding-top: 1rem; }
+.submit p { color: var(--muted); max-width: 65ch; }
+
+/* Offline template: download, fill in, upload to pre-fill the form. */
+.import-box { border: 1px dashed var(--accent); border-radius: var(--radius); background: var(--accent-soft); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.import-box h2 { margin: 0 0 .5rem; font-size: 1.1rem; }
+.import-box ol { margin: 0 0 1rem; padding-left: 1.25rem; }
+.import-form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.import-form label { margin: 0; }
+.import-form input { flex: 1 1 14rem; width: auto; background: var(--surface); }
+.import-warnings { margin-top: 1rem; border-left: 4px solid var(--warn); background: var(--warn-soft); padding: .5rem 1rem; }
+.import-warnings p { margin: 0; font-weight: 600; }
+.apply .check.present { margin-top: .4rem; font-weight: 500; }
+.apply input[type=date]:disabled { opacity: .5; }
+
+/* Progress through /create */
+.progress-steps { list-style: none; display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; padding: 0; margin: 0 0 1.5rem; font-size: .9rem; color: var(--muted); }
+.progress-steps li { display: flex; align-items: center; gap: .45rem; }
+.progress-num { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 2px solid var(--border); font-weight: 700; font-size: .8rem; }
+.progress-steps li.done .progress-num { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.progress-steps li[aria-current] { color: var(--text); font-weight: 700; }
+.progress-steps li[aria-current] .progress-num { border-color: var(--accent); color: var(--accent); }
+.step-nav { display: flex; justify-content: space-between; gap: .75rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.step-nav[hidden], .apply [hidden] { display: none !important; }
+.type-chip { display: inline-block; padding: .2rem .7rem; border-radius: 999px; background: var(--accent-soft); color: var(--text); font-weight: 600; font-size: .95rem; margin-right: .5rem; }
+
+/* Step 1: portfolio type cards */
+.type-form fieldset { border: 0; padding: 0; margin: 0; background: none; box-shadow: none; }
+.type-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.type-card { position: relative; display: flex; flex-direction: column; gap: .5rem; padding: 1.1rem 1.1rem 1.2rem; border: 2px solid var(--border); border-radius: 14px;
+  background: var(--surface); font-weight: 400; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.type-card:hover { border-color: var(--input-border); box-shadow: 0 6px 20px rgb(0 0 0 / .07); transform: translateY(-2px); }
+.type-card input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.type-card:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.type-card:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+.type-icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 12px; background: var(--accent-soft); font-size: 1.6rem; }
+.type-card:has(input:checked) .type-icon { background: var(--surface); }
+.type-name { font-weight: 700; font-size: 1.1rem; color: var(--text); }
+.type-desc { color: var(--muted); font-size: .92rem; }
+.type-cats { display: flex; flex-wrap: wrap; gap: .3rem; }
+.type-cats span { font-size: .75rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); background: var(--bg); }
+.type-example { font-size: .85rem; color: var(--muted); border-top: 1px dashed var(--border); padding-top: .5rem; margin-top: auto; }
+.type-check { position: absolute; top: .9rem; right: .9rem; width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 2px solid var(--input-border); }
+.type-card:has(input:checked) .type-check { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--surface); }
+.disciplines { margin-top: 1.25rem !important; padding: 1rem 1.25rem !important; border: 2px solid var(--accent) !important; border-radius: 14px; background: var(--accent-soft); }
+.disciplines legend { font-weight: 700; padding: 0 .3rem; }
+.discipline-choices { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+/* Disciplines only matter for Hybrid (shown always where :has() is unsupported). */
+@supports selector(:has(*)) {
+  .type-form .disciplines { display: none; }
+  .type-form:has(#type-hybrid:checked) .disciplines { display: block; }
+}
+.samples { margin-top: 2.5rem; }
+.samples h2 { font-size: 1.1rem; margin-bottom: .25rem; }
+.samples ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.samples a { display: inline-block; padding: .35rem .8rem; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; background: var(--surface); }
+.samples a:hover { border-color: var(--accent); }
+.apply fieldset.checks { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
+.apply fieldset.checks legend { font-weight: 600; margin-bottom: .3rem; padding: 0; }
+@media (max-width: 600px) { .progress-steps li:not([aria-current]) span:not(.progress-num) { display: none; } }

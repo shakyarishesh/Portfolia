@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Achievement extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, Publishable;
 
     public const KINDS = ['highlight' => 'Engineering highlight', 'milestone' => 'Career milestone'];

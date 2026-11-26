@@ -8,6 +8,7 @@ The dynamic version of the portfolio. Everything on the public site is stored in
   - `/playground` is a sandboxed REST API demo with sample data only.
   - The CV downloads from `/resume`, and the published content is also available as read-only JSON at `/api/portfolio`.
   - `/sitemap.xml` and `/robots.txt` are generated from the published content.
+- **Portfolio types:** technical, creative, business, management, education, general and hybrid portfolios, each with its own project fields, sections and recommended templates. See [docs/portfolio-types.md](docs/portfolio-types.md).
 - **Admin:** `/admin`. It covers content CRUD, publish and reorder, uploads, blog articles, testimonials, CV versions, messages, analytics, the conversation import and review screens, and the audit history.
 
 Stack: Laravel 12, PHP 8.2+, MySQL 8, Blade, and plain CSS/JS. There's no Node build step. The official Anthropic PHP SDK is only used when AI extraction is turned on.

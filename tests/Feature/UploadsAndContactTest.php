@@ -42,7 +42,7 @@ class UploadsAndContactTest extends TestCase
         Storage::disk('public')->assertMissing($thumb->path);
         $this->assertSame(1, $project->media()->where('collection', 'thumbnail')->count());
 
-        $this->get('/projects/p')->assertSee('class="hero-shot"', false);
+        $this->get('/test-person/projects/p')->assertSee('class="hero-shot"', false);
     }
 
     public function test_resume_must_be_a_pdf_and_is_served_privately(): void
@@ -55,17 +55,17 @@ class UploadsAndContactTest extends TestCase
 
         $resume = \App\Models\Profile::first()->resume;
         $this->assertSame('local', $resume->disk);
-        $this->get('/resume')->assertOk()->assertDownload('rishesh-shakya-cv.pdf');
+        $this->get('/test-person/resume')->assertOk()->assertDownload('rishesh-shakya-cv.pdf');
     }
 
     public function test_contact_form_stores_valid_messages(): void
     {
         $this->profile();
 
-        $this->post('/contact', ['name' => 'A', 'email' => 'bad', 'message' => 'short'])
-            ->assertRedirect(url('/').'#contact')->assertSessionHasErrors(['email', 'message']);
-        $this->post('/contact', ['name' => 'Recruiter', 'email' => 'r@example.test', 'message' => 'Hello, let us talk about a role.'])
-            ->assertRedirect(url('/').'#contact')->assertSessionHas('contact_sent');
+        $this->post('/test-person/contact', ['name' => 'A', 'email' => 'bad', 'message' => 'short'])
+            ->assertRedirect(url('/test-person').'#contact')->assertSessionHasErrors(['email', 'message']);
+        $this->post('/test-person/contact', ['name' => 'Recruiter', 'email' => 'r@example.test', 'message' => 'Hello, let us talk about a role.'])
+            ->assertRedirect(url('/test-person').'#contact')->assertSessionHas('contact_sent');
 
         $this->assertSame(1, ContactMessage::count());
     }
@@ -73,11 +73,11 @@ class UploadsAndContactTest extends TestCase
     public function test_contact_honeypot_and_disabled_form(): void
     {
         $profile = $this->profile();
-        $this->post('/contact', ['name' => 'Bot', 'email' => 'b@example.test', 'message' => 'Buy things now please', 'website' => 'spam.example'])
+        $this->post('/test-person/contact', ['name' => 'Bot', 'email' => 'b@example.test', 'message' => 'Buy things now please', 'website' => 'spam.example'])
             ->assertSessionHas('contact_sent');
         $this->assertSame(0, ContactMessage::count());
 
         $profile->update(['contact_form_enabled' => false]);
-        $this->post('/contact', ['name' => 'A', 'email' => 'a@example.test', 'message' => 'Hello there, friend.'])->assertNotFound();
+        $this->post('/test-person/contact', ['name' => 'A', 'email' => 'a@example.test', 'message' => 'Hello there, friend.'])->assertNotFound();
     }
 }

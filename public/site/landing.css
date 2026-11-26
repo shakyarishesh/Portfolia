@@ -1,0 +1,50 @@
+/* Landing page ("/") — on top of site.css. */
+.hero { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--bg) 70%); border-bottom: 1px solid var(--border); }
+.hero-inner { padding-block: clamp(3rem, 8vw, 6rem); max-width: 760px; margin-inline: auto; text-align: center; }
+.hero h1 { font-size: clamp(2.1rem, 5.5vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; margin: .25rem 0 1rem; }
+.eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .8rem; font-weight: 700; color: var(--accent); margin: 0; }
+.lede { font-size: 1.15rem; color: var(--muted); margin: 0 auto 1.75rem; }
+.url-sample { display: inline-block; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .95em; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0 .4rem; word-break: break-all; }
+.cta-row { display: flex; gap: .75rem; justify-content: center; flex-wrap: wrap; }
+.btn-lg { padding: .75rem 1.4rem; font-size: 1.05rem; }
+.small { font-size: .9rem; }
+
+.band { padding-block: clamp(2.5rem, 6vw, 4rem); }
+.band + .band { border-top: 1px solid var(--border); }
+.band h2 { font-size: clamp(1.5rem, 3.5vw, 2rem); margin: 0 0 1rem; letter-spacing: -.01em; }
+.band h3 { font-size: 1.05rem; margin: 0 0 .35rem; }
+.band p { margin-top: 0; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; background: var(--code-bg); padding: .05rem .3rem; border-radius: 4px; }
+
+.features, .steps, .gallery { list-style: none; margin: 1.5rem 0; padding: 0; display: grid; gap: 1rem; }
+.features { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.features li, .steps li { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.features p, .steps p { margin: 0; color: var(--muted); }
+
+.steps { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); counter-reset: step; }
+.steps li { counter-increment: step; position: relative; padding-top: 3.25rem; }
+.steps li::before { content: counter(step); position: absolute; top: 1rem; left: 1.25rem; width: 1.8rem; height: 1.8rem; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: .9rem; }
+
+.gallery { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+.card img { display: block; width: 100%; aspect-ratio: 8 / 5; object-fit: cover; background: var(--code-bg); border-bottom: 1px solid var(--border); }
+.card-body { padding: 1rem 1.1rem 1.2rem; }
+.card-body p { margin: 0; color: var(--muted); font-size: .92rem; }
+
+.demo { background: var(--surface); }
+.demo-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 900px) { .demo-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); align-items: start; } .demo-grid > div:first-child { position: sticky; top: 1.5rem; } }
+.demo fieldset { background: var(--bg); }
+.demo-actions { margin-bottom: .5rem; }
+.demo-disciplines { margin-top: .75rem; }
+.discipline-choices { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; }
+.demo .check { display: flex; gap: .5rem; align-items: center; font-weight: 500; }
+/* Disciplines only matter for Hybrid (shown always where :has() is unsupported). */
+@supports selector(:has(*)) {
+  .demo-form:not(:has(#d-type option[value="hybrid"]:checked)) .demo-disciplines { display: none; }
+}
+.errors { border: 1px solid var(--bad-border); background: var(--bad-soft); border-radius: var(--radius); padding: .5rem 1rem; margin-bottom: 1rem; }
+.errors p { margin: 0; }
+[aria-invalid="true"] { border-color: var(--danger); }
+
+.closing { text-align: center; }

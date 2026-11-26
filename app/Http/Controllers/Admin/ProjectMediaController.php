@@ -18,7 +18,7 @@ class ProjectMediaController extends Controller
 
     public function store(Request $request, Project $project)
     {
-        return $this->upload($request, $project, ['thumbnail', 'screenshot'], "projects/{$project->id}");
+        return $this->upload($request, $project, ['thumbnail', 'screenshot', 'document'], "projects/{$project->id}");
     }
 
     public function storeForPost(Request $request, Post $post)
@@ -29,13 +29,16 @@ class ProjectMediaController extends Controller
     private function upload(Request $request, Model $owner, array $collections, string $dir)
     {
         $max = config('portfolio.uploads.image_max_kb');
+        $document = $request->input('collection') === 'document';
         $data = $request->validate([
             'collection' => ['required', Rule::in($collections)],
             'images' => ['required', 'array', 'min:1', 'max:10'],
-            // No SVG: it can carry scripts.
-            'images.*' => ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', "max:{$max}", 'dimensions:max_width=6000,max_height=6000'],
+            // Supporting documents are PDFs (served as downloads); images never SVG: it can carry scripts.
+            'images.*' => $document
+                ? ['file', 'mimes:pdf', 'mimetypes:application/pdf', 'max:'.config('portfolio.uploads.resume_max_kb')]
+                : ['file', 'image', 'mimes:jpg,jpeg,png,webp,gif', "max:{$max}", 'dimensions:max_width=6000,max_height=6000'],
             'alt' => ['nullable', 'string', 'max:200'],
-        ], [], ['images.*' => 'image']);
+        ], [], ['images.*' => $document ? 'document' : 'image']);
 
         if (in_array($data['collection'], self::SINGLE, true)) {
             $owner->media()->where('collection', $data['collection'])->get()->each->delete();
@@ -56,7 +59,9 @@ class ProjectMediaController extends Controller
             ]);
         }
 
-        return back()->with('success', count($data['images']) === 1 ? 'Image uploaded.' : count($data['images']).' images uploaded.');
+        $what = $document ? 'document' : 'image';
+
+        return back()->with('success', count($data['images']) === 1 ? ucfirst($what).' uploaded.' : count($data['images'])." {$what}s uploaded.");
     }
 
     public function update(Request $request, Media $media)
@@ -70,7 +75,7 @@ class ProjectMediaController extends Controller
     {
         $media->delete();
 
-        return back()->with('success', 'Image removed.');
+        return back()->with('success', $media->collection === 'document' ? 'Document removed.' : 'Image removed.');
     }
 
     public function preview(Project $project, PortfolioController $portfolio)

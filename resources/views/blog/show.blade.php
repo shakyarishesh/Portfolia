@@ -1,5 +1,6 @@
 @php
-  $url = route('blog.show', $post);
+  $url = $post->url();
+  $listRoute = $post->isNote() ? 'notes.index' : 'blog.index';
   $hasCode = str_contains($article['html'], '<pre><code');
 @endphp
 <!doctype html>
@@ -24,20 +25,22 @@
       'image' => $post->cover?->url(),
       'url' => $url,
       'keywords' => $post->tags ? implode(', ', $post->tags) : null,
-      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => url('/')],
+      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => route('home')],
   ]), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
   @if ($hasCode)
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   @endif
 </head>
 <body>
+  @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @if ($preview)
     <div class="preview-bar" role="status">Preview — status: <b>{{ $post->status }}</b>@if ($post->published_at?->isFuture()), scheduled for {{ $post->published_at->format('j M Y H:i') }}@endif. <a href="{{ route('admin.resources.edit', ['posts', $post->id]) }}">Back to editor</a></div>
   @endif
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap narrow">
-      <a class="back" href="{{ route('blog.index') }}">← All articles</a>
+      <a class="back" href="{{ route($listRoute) }}">← All articles</a>
       <p class="eyebrow">{{ collect([$post->category, $post->published_at?->format('j F Y'), $post->readingMinutes().' min read'])->filter()->implode(' · ') }}</p>
       <h1 class="title big">{{ $post->title }}</h1>
       @if ($post->excerpt)<p class="lead">{{ $post->excerpt }}</p>@endif
@@ -54,7 +57,7 @@
           @endif
           @if ($post->tags)
             <h2>Tags</h2>
-            <div class="techs">@foreach ($post->tags as $t)<a href="{{ route('blog.index', ['tag' => $t]) }}">#{{ $t }}</a>@endforeach</div>
+            <div class="techs">@foreach ($post->tags as $t)<a href="{{ route($listRoute, ['tag' => $t]) }}">#{{ $t }}</a>@endforeach</div>
           @endif
           <h2>Share</h2>
           <div class="share">
@@ -69,7 +72,7 @@
         <h2>Related articles</h2>
         <div class="related">
           @foreach ($related as $r)
-            <a class="card" href="{{ route('blog.show', $r) }}"><span class="tag">{{ $r->published_at->format('j M Y') }}</span><h3>{{ $r->title }}</h3>@if ($r->excerpt)<p>{{ \Illuminate\Support\Str::limit($r->excerpt, 120) }}</p>@endif</a>
+            <a class="card" href="{{ $r->url() }}"><span class="tag">{{ $r->published_at->format('j M Y') }}</span><h3>{{ $r->title }}</h3>@if ($r->excerpt)<p>{{ \Illuminate\Support\Str::limit($r->excerpt, 120) }}</p>@endif</a>
           @endforeach
         </div>
       @endif

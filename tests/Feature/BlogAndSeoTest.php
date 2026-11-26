@@ -35,7 +35,7 @@ class BlogAndSeoTest extends TestCase
     {
         $this->article();
 
-        $html = $this->get('/blog/payroll-engines')->assertOk()
+        $html = $this->get('/rishesh/blog/payroll-engines')->assertOk()
             ->assertSee('<h2 id="why">Why</h2>', false)
             ->assertSee('href="#how"', false)
             ->assertSee('language-php', false)
@@ -52,11 +52,11 @@ class BlogAndSeoTest extends TestCase
         $this->article(['slug' => 'draft', 'title' => 'Draft one', 'status' => 'draft']);
         $this->article(['slug' => 'later', 'title' => 'Scheduled one', 'published_at' => now()->addDay()]);
 
-        $this->get('/blog/draft')->assertNotFound();
-        $this->get('/blog/later')->assertNotFound();
-        $this->get('/blog')->assertOk()->assertDontSee('Draft one')->assertDontSee('Scheduled one')->assertSee('No articles published yet');
+        $this->get('/rishesh/blog/draft')->assertNotFound();
+        $this->get('/rishesh/blog/later')->assertNotFound();
+        $this->get('/rishesh/blog')->assertOk()->assertDontSee('Draft one')->assertDontSee('Scheduled one')->assertSee('No articles published yet');
         // no live posts → no Blog link on the home page
-        $this->get('/')->assertDontSee('>Blog</a>', false);
+        $this->get('/rishesh')->assertDontSee('>Blog</a>', false);
     }
 
     public function test_blog_search_tag_filter_and_related(): void
@@ -65,10 +65,10 @@ class BlogAndSeoTest extends TestCase
         $this->article(['slug' => 'apis', 'title' => 'Building REST APIs', 'tags' => ['laravel', 'api'], 'body' => 'Resources and versioning.']);
         $this->article(['slug' => 'ws', 'title' => 'WebSockets 101', 'tags' => ['realtime'], 'category' => 'Realtime', 'body' => 'Channels.']);
 
-        $this->get('/blog?tag=api')->assertSee('Building REST APIs')->assertDontSee('WebSockets 101');
-        $this->get('/blog?q=versioning')->assertSee('Building REST APIs')->assertDontSee('Designing payroll engines');
-        $this->get('/blog/payroll-engines')->assertSee('Related articles')->assertSee('Building REST APIs')->assertDontSee('WebSockets 101');
-        $this->get('/')->assertSee('>Blog</a>', false);
+        $this->get('/rishesh/blog?tag=api')->assertSee('Building REST APIs')->assertDontSee('WebSockets 101');
+        $this->get('/rishesh/blog?q=versioning')->assertSee('Building REST APIs')->assertDontSee('Designing payroll engines');
+        $this->get('/rishesh/blog/payroll-engines')->assertSee('Related articles')->assertSee('Building REST APIs')->assertDontSee('WebSockets 101');
+        $this->get('/rishesh')->assertSee('>Blog</a>', false);
     }
 
     public function test_admin_creates_article_and_previews_it(): void
@@ -81,7 +81,7 @@ class BlogAndSeoTest extends TestCase
         $this->assertSame('query-optimisation-notes', $post->slug);
         $this->assertSame(['mysql', 'performance'], $post->tags);
         $this->assertNotNull($post->published_at, 'publishing without a date publishes now');
-        $this->get("/blog/{$post->slug}")->assertOk();
+        $this->get("/rishesh/blog/{$post->slug}")->assertOk();
 
         $post->update(['status' => 'draft']);
         $this->get("/admin/posts/{$post->id}/preview")->assertOk()->assertSee('Preview')->assertSee('noindex', false);

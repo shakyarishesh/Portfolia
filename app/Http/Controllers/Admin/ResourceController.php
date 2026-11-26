@@ -56,7 +56,7 @@ class ResourceController extends Controller
         $resource = Resources::bySlug($slug);
         $record = DB::transaction(fn () => $resource::save($resource::newModel(), $request->validate($resource::rules())));
 
-        return redirect()->route('admin.resources.edit', [$slug, $record->getKey()])->with('success', $resource::SINGULAR.' created.');
+        return redirect()->route('admin.resources.edit', [$slug, $record->getKey()])->with('success', $resource::singular().' created.');
     }
 
     public function edit(string $slug, int $id)

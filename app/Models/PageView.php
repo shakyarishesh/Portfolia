@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 
 class PageView extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     public const UPDATED_AT = null;
 
     protected $guarded = ['id'];

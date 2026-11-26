@@ -33,3 +33,42 @@ document.querySelectorAll('[data-mode-switch]').forEach(group => {
   group.addEventListener('change', sync);
   sync();
 });
+
+// Sidebar portfolio switcher: post to the chosen portfolio's switch URL.
+document.querySelectorAll('[data-switcher]').forEach(form => {
+  form.querySelector('select').addEventListener('change', e => {
+    form.action = e.target.selectedOptions[0].dataset.action;
+    form.submit();
+  });
+});
+
+// "Mobile" preview: open the public page in a phone-sized window.
+document.addEventListener('click', e => {
+  const link = e.target.closest('[data-popup]');
+  if (!link) return;
+  const [w, h] = link.dataset.popup.split('x');
+  if (window.open(link.href, 'portfolio-preview-' + w, `width=${w},height=${h}`)) e.preventDefault();
+});
+
+// Delete confirmation: enable the button only once the username is typed exactly.
+document.querySelectorAll('[data-confirm-text]').forEach(input => {
+  const button = input.form.querySelector('[type=submit]');
+  const sync = () => button.disabled = input.value.trim() !== input.dataset.confirmText;
+  input.addEventListener('input', sync);
+  sync();
+});
+
+// Dark mode switch: flips the current look (system or saved) and remembers it; see partials/theme-init.
+const themeToggle = document.querySelector('[data-theme-toggle]');
+if (themeToggle) {
+  const root = document.documentElement;
+  const isDark = () => (root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+  const sync = () => themeToggle.setAttribute('aria-pressed', String(isDark()));
+  themeToggle.addEventListener('click', () => {
+    root.dataset.theme = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem('admin-theme', root.dataset.theme); } catch (e) {}
+    sync();
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+  sync();
+}

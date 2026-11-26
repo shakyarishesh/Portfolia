@@ -28,11 +28,11 @@ class AuthTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_wrong_password_and_non_admins_are_rejected(): void
+    public function test_wrong_password_and_users_without_a_portfolio_are_rejected(): void
     {
         $user = User::factory()->create(['is_admin' => false]);
 
-        $this->post('/admin/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('email');
+        $this->post('/admin/login', ['email' => $user->email, 'password' => 'password'])->assertSessionHasErrors('login');
         $this->assertGuest();
 
         $this->actingAs($user)->get('/admin')->assertForbidden();
@@ -51,7 +51,7 @@ class AuthTest extends TestCase
     public function test_admin_pages_are_not_cached_or_indexed(): void
     {
         $this->admin();
-        \App\Models\Profile::create(['full_name' => 'A', 'headline' => 'B']);
+        $this->profile();
 
         $this->get('/admin')->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, nofollow')

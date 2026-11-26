@@ -21,18 +21,20 @@
       'description' => $project->tagline,
       'url' => route('projects.show', $project),
       'image' => $project->thumbnail?->url(),
-      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => url('/')],
+      'author' => ['@type' => 'Person', 'name' => $profile->full_name, 'url' => route('home')],
       'keywords' => $project->technologies->pluck('name')->implode(', ') ?: null,
   ]), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) !!}</script>
 </head>
 <body>
+  @include('portfolios.partials.preview-banner')
+  @include('portfolios.partials.cursor')
   @if ($preview)
     <div class="preview-bar" role="status">Preview — status: <b>{{ $project->status }}</b>. <a href="{{ route('admin.resources.edit', ['projects', $project->id]) }}">Back to editor</a></div>
   @endif
   <div class="bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><div class="grid"></div></div>
   <main class="page">
     <div class="wrap narrow">
-      <a class="back" href="{{ url('/') }}#projects">← All projects</a>
+      <a class="back" href="{{ route('home') }}#projects">← All projects</a>
       <p class="eyebrow">{{ collect([$project->category, $project->experience?->company, $project->period()])->filter()->implode(' · ') }}</p>
       <h1 class="title big">{{ $project->name }}</h1>
       @if ($project->tagline)<p class="lead">{{ $project->tagline }}</p>@endif
@@ -48,7 +50,7 @@
       <div class="doc-grid">
         <div>
           @if ($project->description)<h2 id="overview">Overview</h2>@foreach (Paragraphs::paragraphs($project->description) as $p)<p>{!! $p !!}</p>@endforeach @endif
-          @if ($project->problem)<h2 id="problem">Problem &amp; objectives</h2>@foreach (Paragraphs::paragraphs($project->problem) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @if ($project->problem)<h2 id="problem">{{ $portfolio->projectLabel('problem', 'Problem & objectives') }}</h2>@foreach (Paragraphs::paragraphs($project->problem) as $p)<p>{!! $p !!}</p>@endforeach @endif
           @if ($project->features)<h2 id="built">What I built</h2><ul>@foreach ($project->features as $f)<li>{!! $md($f) !!}</li>@endforeach</ul>@endif
           @if ($project->architecture)<h2 id="architecture">Architecture</h2>@foreach (Paragraphs::paragraphs($project->architecture) as $p)<p>{!! $p !!}</p>@endforeach @endif
           @if ($project->diagram)
@@ -57,7 +59,8 @@
               <figcaption><button type="button" class="linkish" data-diagram-expand>Expand diagram</button> · Simplified, public-safe view.</figcaption>
             </figure>
           @endif
-          @if ($project->challenges)<h2 id="challenges">Challenges &amp; solutions</h2>@foreach (Paragraphs::paragraphs($project->challenges) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @if ($project->challenges)<h2 id="challenges">{{ $portfolio->projectLabel('challenges', 'Challenges & solutions') }}</h2>@foreach (Paragraphs::paragraphs($project->challenges) as $p)<p>{!! $p !!}</p>@endforeach @endif
+          @include('portfolios.partials.project-details')
           @if ($highlights->isNotEmpty())
             <h2>Engineering highlights</h2>
             @foreach ($highlights as $h)
@@ -73,7 +76,7 @@
       </div>
 
       @if ($project->screenshots->isNotEmpty())
-        <h2>Screenshots</h2>
+        <h2>{{ $portfolio->term('screenshots') }}</h2>
         <div class="shots">@foreach ($project->screenshots as $shot)<a href="{{ $shot->url() }}" target="_blank" rel="noopener"><img src="{{ $shot->url() }}" alt="{{ $shot->alt ?: $project->name.' screenshot' }}" loading="lazy"></a>@endforeach</div>
       @endif
 

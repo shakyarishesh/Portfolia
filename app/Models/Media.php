@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     protected $guarded = ['id'];
 
     protected $casts = ['is_active' => 'boolean'];

@@ -9,7 +9,14 @@
     $required = in_array('required', array_filter($field['rules'] ?? [], 'is_string'), true);
 @endphp
 <div class="field {{ $wide ? 'wide' : '' }}">
-  @if ($field['type'] === 'checkbox')
+  @if ($field['type'] === 'checkboxes')
+    <fieldset class="checks" @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif>
+      <legend>{{ $field['label'] }}</legend>
+      @foreach ($field['options'] as $optValue => $optLabel)
+        <label class="check"><input type="checkbox" name="{{ $inputName }}[]" value="{{ $optValue }}" @checked(in_array((string) $optValue, array_map('strval', (array) $old), true))> {{ $optLabel }}</label>
+      @endforeach
+    </fieldset>
+  @elseif ($field['type'] === 'checkbox')
     <label class="check">@unless (isset($prefix))<input type="hidden" name="{{ $inputName }}" value="0">@endunless<input type="checkbox" id="{{ $id }}" name="{{ $inputName }}" value="1" @checked($old) @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif> {{ $field['label'] }}</label>
   @else
     <label for="{{ $id }}">{{ $field['label'] }}@if ($required) <span aria-hidden="true" class="muted">*</span>@endif</label>
@@ -27,7 +34,7 @@
         </select>
         @break
       @default
-        @php $htmlType = ['url' => 'url', 'email' => 'email', 'date' => 'date', 'datetime' => 'datetime-local', 'number' => 'number'][$field['type']] ?? 'text'; @endphp
+        @php $htmlType = ['url' => 'url', 'email' => 'email', 'password' => 'password', 'date' => 'date', 'datetime' => 'datetime-local', 'number' => 'number'][$field['type']] ?? 'text'; @endphp
         <input type="{{ $htmlType }}" id="{{ $id }}" name="{{ $inputName }}" value="{{ is_array($old) ? implode(', ', $old) : $old }}" @required($required) @if ($describedBy) aria-describedby="{{ $describedBy }}" @endif @error($errorKey) aria-invalid="true" @enderror>
     @endswitch
   @endif

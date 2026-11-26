@@ -30,8 +30,10 @@ class PostResource extends Resource
     {
         return [
             'title' => ['type' => 'text', 'label' => 'Title', 'rules' => ['required', 'string', 'max:200']],
+            'kind' => ['type' => 'select', 'label' => 'Type', 'options' => ['article' => 'Article (dated, appears on the blog)', 'note' => 'Note (evergreen, appears under Notes)'], 'default' => 'article',
+                'rules' => ['nullable', Rule::in(['article', 'note'])]],
             'slug' => ['type' => 'text', 'label' => 'URL slug', 'help' => 'Leave blank to generate from the title.',
-                'rules' => ['nullable', 'alpha_dash', 'max:200', Rule::unique('posts', 'slug')->ignore(request()->route('id'))]],
+                'rules' => ['nullable', 'alpha_dash', 'max:200', Rule::unique('posts', 'slug')->where('portfolio_id', \App\Support\CurrentPortfolio::id())->ignore(request()->route('id'))]],
             'excerpt' => ['type' => 'textarea', 'label' => 'Excerpt', 'rows' => 2, 'help' => 'Shown on the article list and in search results.', 'rules' => ['nullable', 'string', 'max:500']],
             'body' => ['type' => 'textarea', 'label' => 'Article (Markdown)', 'rows' => 22, 'help' => 'Markdown: ## headings build the table of contents; ```php fences get syntax highlighting. Raw HTML is escaped.',
                 'rules' => ['nullable', 'string', 'max:200000']],
@@ -47,9 +49,15 @@ class PostResource extends Resource
     public static function columns(): array
     {
         return [
-            'title' => 'Article',
+            'title' => 'Title',
+            'kind' => fn ($r) => $r->kind === 'note' ? 'Note' : 'Article',
             'published' => fn ($r) => $r->published_at ? ($r->published_at->isFuture() ? 'Scheduled '.$r->published_at->format('j M Y H:i') : $r->published_at->format('j M Y')) : '—',
         ];
+    }
+
+    public static function filters(): array
+    {
+        return ['kind' => ['Type', ['article' => 'Articles', 'note' => 'Notes']]];
     }
 
     public static function query(): Builder
@@ -59,6 +67,7 @@ class PostResource extends Resource
 
     protected static function beforeSave(Model $record): void
     {
+        $record->kind ??= 'article';
         if (blank($record->slug)) {
             $record->slug = static::uniqueSlug($record->title, $record->id);
         }

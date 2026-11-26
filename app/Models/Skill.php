@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Skill extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     use Auditable, Publishable;
 
     public const LEVELS = [1 => 'Familiar', 2 => 'Working knowledge', 3 => 'Strong', 4 => 'Expert'];

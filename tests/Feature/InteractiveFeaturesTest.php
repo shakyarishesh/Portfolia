@@ -30,7 +30,7 @@ class InteractiveFeaturesTest extends TestCase
 
     public function test_home_has_project_filters_terminal_and_tech_links(): void
     {
-        $this->get('/')->assertOk()
+        $this->get('/rishesh')->assertOk()
             ->assertSee('class="project-tools', false)
             ->assertSee('data-techs="|', false)
             ->assertSee('<dialog class="terminal"', false)
@@ -46,7 +46,7 @@ class InteractiveFeaturesTest extends TestCase
             'diagram' => "flowchart LR\n  A[Client]-->B[API]", 'meta_description' => 'Hajir case study',
         ]);
 
-        $this->get('/projects/hajir')->assertOk()
+        $this->get('/rishesh/projects/hajir')->assertOk()
             ->assertSee('Problem &amp; objectives', false)
             ->assertSee('<strong>days</strong>', false)
             ->assertSee('Challenges &amp; solutions', false)
@@ -59,10 +59,10 @@ class InteractiveFeaturesTest extends TestCase
     public function test_testimonials_show_only_when_published(): void
     {
         Testimonial::create(['name' => 'Sita Sharma', 'company' => 'Acme', 'quote' => 'Great to work with.', 'status' => 'draft']);
-        $this->get('/')->assertDontSee('Sita Sharma');
+        $this->get('/rishesh')->assertDontSee('Sita Sharma');
 
         Testimonial::query()->update(['status' => 'published']);
-        $this->get('/')->assertSee('Sita Sharma')->assertSee('Great to work with.');
+        $this->get('/rishesh')->assertSee('Sita Sharma')->assertSee('Great to work with.');
     }
 
     public function test_demo_api_lists_filters_validates_and_404s(): void
@@ -93,12 +93,12 @@ class InteractiveFeaturesTest extends TestCase
 
     public function test_playground_page_renders(): void
     {
-        $this->get('/playground')->assertOk()->assertSee('API playground')->assertSee('Calculate a payslip');
+        $this->get('/rishesh/playground')->assertOk()->assertSee('API playground')->assertSee('Calculate a payslip');
     }
 
     public function test_assistant_is_disabled_without_configuration(): void
     {
-        $this->postJson('/assistant', ['question' => 'Where do you work?'])->assertNotFound();
+        $this->postJson('/rishesh/assistant', ['question' => 'Where do you work?'])->assertNotFound();
     }
 
     public function test_assistant_answers_from_published_content_only(): void
@@ -115,8 +115,8 @@ class InteractiveFeaturesTest extends TestCase
             'enabled' => true, 'api_key' => 'test-key', 'model' => 'claude-opus-5-5', 'base_url' => 'https://api.anthropic.com',
         ], new Guzzle(['handler' => $stack])));
 
-        $this->get('/')->assertSee('class="assistant"', false);
-        $this->postJson('/assistant', ['question' => 'Where does Rishesh work?', 'history' => [['role' => 'assistant', 'text' => 'Hi!']]])
+        $this->get('/rishesh')->assertSee('class="assistant"', false);
+        $this->postJson('/rishesh/assistant', ['question' => 'Where does Rishesh work?', 'history' => [['role' => 'assistant', 'text' => 'Hi!']]])
             ->assertOk()->assertJsonPath('answer', 'Rishesh works at Velox Labs.');
 
         $body = json_decode((string) $history[0]['request']->getBody(), true);
@@ -125,6 +125,6 @@ class InteractiveFeaturesTest extends TestCase
         $this->assertStringContainsString('Hajir', $body['system'][0]['text']);
         $this->assertStringNotContainsString('Zephyr', $body['system'][0]['text'], 'drafts never reach the model');
 
-        $this->postJson('/assistant', ['question' => str_repeat('a', 501)])->assertStatus(422);
+        $this->postJson('/rishesh/assistant', ['question' => str_repeat('a', 501)])->assertStatus(422);
     }
 }

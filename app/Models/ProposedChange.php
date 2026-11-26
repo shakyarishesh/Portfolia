@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProposedChange extends Model
 {
+    use \App\Models\Concerns\BelongsToPortfolio;
+
     public const CLASSIFICATIONS = ['new' => 'New', 'changed' => 'Adds detail', 'duplicate' => 'Duplicate', 'contradiction' => 'Contradiction'];
 
     protected $guarded = ['id'];

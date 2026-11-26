@@ -27,7 +27,7 @@ class SkillCategoryResource extends Resource
         $id = request()->route('id');
 
         return [
-            'name' => ['type' => 'text', 'label' => 'Name', 'rules' => ['required', 'string', 'max:100', Rule::unique('skill_categories', 'name')->ignore($id)]],
+            'name' => ['type' => 'text', 'label' => 'Name', 'rules' => ['required', 'string', 'max:100', Rule::unique('skill_categories', 'name')->where('portfolio_id', \App\Support\CurrentPortfolio::id())->ignore($id)]],
             'description' => ['type' => 'text', 'label' => 'Description', 'rules' => ['nullable', 'string', 'max:255']],
             'status' => static::statusField(),
             'source_note' => static::sourceNoteField(),
