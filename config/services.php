@@ -28,6 +28,16 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    // Public "fill the form from your CV" on /create. Free key: aistudio.google.com. Empty = feature hidden.
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-flash-latest'),
+        // Tried when the main model stays busy (503) or out of free quota (429).
+        'fallback_model' => env('GEMINI_FALLBACK_MODEL', 'gemini-flash-lite-latest'),
+        // Site-wide CV reads per day; keep under the free tier's daily quota.
+        'daily_limit' => (int) env('GEMINI_DAILY_LIMIT', 200),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

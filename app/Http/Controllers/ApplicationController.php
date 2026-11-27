@@ -18,6 +18,8 @@ use App\Models\Profile;
 use App\Models\Skill;
 use App\Models\SocialLink;
 use App\Models\User;
+use App\Services\CvReader;
+use App\Services\CvReaderException;
 use App\Support\CurrentPortfolio;
 use App\Support\Templates;
 use App\Support\Username;
@@ -25,6 +27,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -203,6 +206,15 @@ class ApplicationController extends Controller
     public function template(Request $request)
     {
         [$type, $disciplines] = $request->filled('type') ? $this->chosenType($request) : [PortfolioType::where('slug', PortfolioType::DEFAULT)->firstOrFail(), []];
+
+        return response($this->detailsTemplate($type, $disciplines), 200, [
+            'Content-Type' => 'text/plain; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="portfolio-details.txt"',
+        ]);
+    }
+
+    private function detailsTemplate(PortfolioType $type, array $disciplines): string
+    {
         $out = [
             '# '.config('portfolio.platform_name').' — portfolio details',
             '#',
@@ -243,10 +255,7 @@ class ApplicationController extends Controller
             $out[] = '';
         }
 
-        return response(implode("\n", $out), 200, [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="portfolio-details.txt"',
-        ]);
+        return implode("\n", $out);
     }
 
     /** Fill the form from an uploaded template: flashed as old input, so the applicant reviews it before submitting. */
@@ -258,6 +267,42 @@ class ApplicationController extends Controller
 
         return redirect()->route('apply.create', ['type' => $type->slug, 'disciplines' => $disciplines ?: null])->withInput($data)->with('import_warnings', $warnings)
             ->with('success', 'The form below was filled in from your file. Check everything, add your photo and CV, then submit.');
+    }
+
+    /** Fill the form from a CV: Gemini writes the details template from the PDF, then it goes through the same parser as import(). */
+    public function importCv(Request $request, CvReader $reader)
+    {
+        abort_unless(CvReader::enabled(), 404);
+        [$type, $disciplines] = $this->chosenType($request);
+        $request->validate(['cv' => ['required', 'file', 'max:5120', 'mimes:pdf', 'mimetypes:application/pdf']], [], ['cv' => 'CV']);
+        $back = redirect()->route('apply.create', ['type' => $type->slug, 'disciplines' => $disciplines ?: null]);
+
+        // Counted only once the upload is valid, so a wrong file type doesn't use up an attempt.
+        $keys = ['cv-import:'.$request->ip() => 2, 'cv-import:all' => (int) config('services.gemini.daily_limit')];
+        foreach ($keys as $key => $max) {
+            if (RateLimiter::tooManyAttempts($key, $max)) {
+                return $back->withErrors(['cv' => $key === 'cv-import:all'
+                    ? 'CV reading is busy today. Please use the template below instead, or try again tomorrow.'
+                    : 'You can read in up to 2 CVs a day. Please use the template below instead, or fill in the form.']);
+            }
+        }
+        foreach ($keys as $key => $max) {
+            RateLimiter::hit($key, 86400);
+        }
+
+        try {
+            $text = $reader->fill($request->file('cv')->getRealPath(), $this->detailsTemplate($type, $disciplines));
+        } catch (CvReaderException $e) {
+            report($e);
+            // Not the applicant's fault: give the attempt back. The site-wide count stays, as the quota was used.
+            RateLimiter::decrement('cv-import:'.$request->ip(), 86400);
+
+            return $back->withErrors(['cv' => 'We couldn\'t read your CV just now. Please try again later, or use the template below.']);
+        }
+        [$data, $warnings] = $this->parseDetails($text, $type->slug, $disciplines);
+
+        return $back->withInput($data)->with('import_warnings', $warnings)
+            ->with('success', 'The form below was filled in from your CV. Check everything carefully — it was read automatically — add your photo and CV, then submit.');
     }
 
     /** Sections of the details file: heading => [group key (null = top-level fields), fields]. */

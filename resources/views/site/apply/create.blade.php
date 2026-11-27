@@ -23,19 +23,42 @@
   <p class="lead">Tell us about yourself once — we turn it into a portfolio website in the template you pick. Only your name, email, address and password are required; add as much of the rest as you like.</p>
 
   <section class="import-box" aria-labelledby="import-title" data-step="basics">
-    <h2 id="import-title">Prefer to fill it in offline?</h2>
-    <ol>
-      <li><a href="{{ route('apply.template', $typeQuery) }}" download>Download the details template</a> — a plain text file with the fields of a {{ $type->name }} portfolio.</li>
-      <li>Fill it in with any text editor (Notepad, TextEdit …). Notes in the file explain each field.</li>
-      <li>Upload it here: the form below is filled in from your file so you can check it, add your photo and CV, and submit.</li>
-    </ol>
-    <form method="post" action="{{ route('apply.import') }}" enctype="multipart/form-data" class="import-form">
-      @csrf
-      {!! $hidden() !!}
-      <label for="details-file">Your filled-in template</label>
-      <input type="file" id="details-file" name="details" accept=".txt,text/plain" required>
-      <button class="btn" type="submit">Fill in the form</button>
-    </form>
+    <h2 id="import-title">Prefer not to type it all?</h2>
+    @if ($cvEnabled = \App\Services\CvReader::enabled())
+      {{-- Tabs need JS; without it both panels show one after the other. --}}
+      <div class="import-tabs" role="tablist" aria-labelledby="import-title" data-tabs hidden>
+        <button type="button" role="tab" id="tab-template" aria-controls="panel-template" aria-selected="{{ $errors->has('cv') ? 'false' : 'true' }}">Fill in a template</button>
+        <button type="button" role="tab" id="tab-cv" aria-controls="panel-cv" aria-selected="{{ $errors->has('cv') ? 'true' : 'false' }}">Upload your CV</button>
+      </div>
+    @endif
+    <div id="panel-template" @if ($cvEnabled) role="tabpanel" aria-labelledby="tab-template" @endif>
+      <ol>
+        <li><a href="{{ route('apply.template', $typeQuery) }}" download>Download the details template</a> — a plain text file with the fields of a {{ $type->name }} portfolio.</li>
+        <li>Fill it in with any text editor (Notepad, TextEdit …). Notes in the file explain each field.</li>
+        <li>Upload it here: the form below is filled in from your file so you can check it, add your photo and CV, and submit.</li>
+      </ol>
+      <form method="post" action="{{ route('apply.import') }}" enctype="multipart/form-data" class="import-form">
+        @csrf
+        {!! $hidden() !!}
+        <label for="details-file">Your filled-in template</label>
+        <input type="file" id="details-file" name="details" accept=".txt,text/plain" required>
+        <button class="btn" type="submit">Fill in the form</button>
+      </form>
+    </div>
+    @if ($cvEnabled)
+      <div id="panel-cv" role="tabpanel" aria-labelledby="tab-cv">
+        <p>Upload your CV as a PDF and we fill in the form below for you to check and edit. Nothing is submitted until you press Submit.</p>
+        <form method="post" action="{{ route('apply.cv') }}" enctype="multipart/form-data" class="import-form">
+          @csrf
+          {!! $hidden() !!}
+          <label for="cv-file">Your CV (PDF, up to 5 MB)</label>
+          <input type="file" id="cv-file" name="cv" accept=".pdf,application/pdf" required aria-describedby="cv-note">
+          <button class="btn" type="submit" data-loading="Reading your CV…">Fill in from my CV</button>
+        </form>
+        @error('cv')<p class="error">{{ $message }}</p>@enderror
+        <p id="cv-note" class="help">Your CV is sent to Google Gemini to read it; it can take up to a minute. Up to 2 CVs a day.</p>
+      </div>
+    @endif
     @if (session('import_warnings'))
       <div class="import-warnings" role="status">
         <p>Some parts of your file couldn't be used — please fill these in below:</p>

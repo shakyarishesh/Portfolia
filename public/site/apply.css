@@ -92,3 +92,9 @@ fieldset.templates { border: 0; padding: 0; margin: 0; }
 .apply fieldset.checks { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
 .apply fieldset.checks legend { font-weight: 600; margin-bottom: .3rem; padding: 0; }
 @media (max-width: 600px) { .progress-steps li:not([aria-current]) span:not(.progress-num) { display: none; } }
+.import-box .help { font-size: .875rem; color: var(--muted); margin: .5rem 0 0; }
+.import-box .error { color: var(--danger); font-size: .9rem; margin: .5rem 0 0; }
+.import-tabs { display: flex; gap: .25rem; margin: 0 0 1rem; border-bottom: 1px solid var(--accent); }
+.import-tabs [role=tab] { font: inherit; color: var(--muted); background: none; border: 1px solid transparent; border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0; padding: .4rem .9rem; margin-bottom: -1px; cursor: pointer; }
+.import-tabs [role=tab][aria-selected=true] { color: inherit; font-weight: 600; background: var(--surface); border-color: var(--accent); }
+.import-tabs [role=tab]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
