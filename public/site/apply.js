@@ -95,3 +95,32 @@ document.addEventListener('change', e => { if (e.target.matches('[data-present]'
   }, true);
   show(start, false);
 })();
+
+// Slow submits (reading a CV): disable the button so a second click doesn't send it again.
+document.querySelectorAll('button[data-loading]').forEach(b => b.form.addEventListener('submit', () => {
+  b.disabled = true;
+  b.textContent = b.dataset.loading;
+}));
+
+// Template / CV tabs above the form. The server marks the open tab (the CV one after a CV error).
+document.querySelectorAll('[data-tabs]').forEach(list => {
+  const tabs = [...list.querySelectorAll('[role=tab]')];
+  const select = tab => tabs.forEach(t => {
+    const on = t === tab;
+    t.setAttribute('aria-selected', on);
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  });
+  list.hidden = false;
+  select(tabs.find(t => t.getAttribute('aria-selected') === 'true') || tabs[0]);
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => select(t));
+    t.addEventListener('keydown', e => {
+      const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      select(next);
+      next.focus();
+    });
+  });
+});
