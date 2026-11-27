@@ -12,7 +12,7 @@
       </div>
       <div data-mode="file" class="field">
         <label for="file">Export file</label>
-        <input type="file" id="file" name="file" accept=".zip,.json,.jsonl,.txt,.md">
+        <input type="file" id="file" name="file" accept=".zip,.json,.jsonl,.txt,.md" data-max-kb="{{ config('portfolio.import.max_kb') }}">
         <span class="help">claude.ai data export (.zip or conversations.json), a Claude Code session (.jsonl), or a .txt/.md transcript · max {{ number_format(config('portfolio.import.max_kb') / 1024) }} MB.</span>
       </div>
       <div data-mode="text" class="stack" hidden>

@@ -80,4 +80,11 @@ class UploadsAndContactTest extends TestCase
         $profile->update(['contact_form_enabled' => false]);
         $this->post('/test-person/contact', ['name' => 'A', 'email' => 'a@example.test', 'message' => 'Hello there, friend.'])->assertNotFound();
     }
+
+    public function test_oversized_upload_shows_friendly_page(): void
+    {
+        $this->call('POST', '/admin/profile/upload', server: ['CONTENT_LENGTH' => PHP_INT_MAX])
+            ->assertStatus(413)
+            ->assertSee('File too large');
+    }
 }

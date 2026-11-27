@@ -20,7 +20,7 @@
       <p class="small muted">@if ($profile->avatar) Uploaded: {{ $profile->avatar->original_name }} @elseif ($profile->avatar_url) Using the avatar URL. @else No photo yet — the hero still looks fine without one. @endif</p>
       <form method="post" action="{{ route('admin.profile.upload') }}" enctype="multipart/form-data" class="stack">
         @csrf <input type="hidden" name="collection" value="avatar">
-        <input type="file" name="file" accept="image/png,image/jpeg,image/webp" required aria-label="Profile photo">
+        <input type="file" name="file" accept="image/png,image/jpeg,image/webp" data-max-kb="{{ config('portfolio.uploads.image_max_kb') }}" required aria-label="Profile photo">
         <span class="small muted">JPG, PNG or WebP, up to {{ config('portfolio.uploads.image_max_kb') / 1024 }} MB.</span>
         <button class="btn" type="submit" data-loading="Uploading…">Upload photo</button>
       </form>
@@ -54,7 +54,7 @@
       @endif
       <form method="post" action="{{ route('admin.profile.upload') }}" enctype="multipart/form-data" class="stack">
         @csrf <input type="hidden" name="collection" value="resume">
-        <input type="file" name="file" accept="application/pdf" required aria-label="Resume PDF">
+        <input type="file" name="file" accept="application/pdf" data-max-kb="{{ config('portfolio.uploads.resume_max_kb') }}" required aria-label="Resume PDF">
         <span class="small muted">PDF only, up to {{ config('portfolio.uploads.resume_max_kb') / 1024 }} MB. The new upload becomes active; older versions are kept.</span>
         <button class="btn" type="submit" data-loading="Uploading…">Upload new version</button>
       </form>

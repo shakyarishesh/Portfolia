@@ -12,6 +12,16 @@ document.addEventListener('submit', e => {
   }
 });
 
+// File size limit: block oversized files in the browser instead of a failed upload.
+document.addEventListener('change', e => {
+  const input = e.target.closest('input[type=file][data-max-kb]');
+  if (!input) return;
+  const max = input.dataset.maxKb * 1024;
+  const tooBig = [...input.files].some(f => f.size > max);
+  input.setCustomValidity(tooBig ? `File is too large (max ${Math.round(max / 1048576)} MB).` : '');
+  input.reportValidity();
+});
+
 document.addEventListener('click', e => {
   const toggle = e.target.closest('[data-toggle-sidebar]');
   if (toggle) document.querySelector('.sidebar').classList.toggle('open');
