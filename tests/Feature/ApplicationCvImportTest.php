@@ -95,6 +95,15 @@ class ApplicationCvImportTest extends TestCase
         Http::assertSentCount(5); // 3 tries of the main model, 2 of the fallback
     }
 
+    public function test_a_model_that_times_out_falls_back_to_the_other(): void
+    {
+        Http::fake([
+            '*/models/main-model:*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('cURL error 28: Operation timed out'),
+            '*/models/lite-model:*' => $this->answer("== Profile ==\nFull name: Jane Doe"),
+        ]);
+        $this->upload()->assertSessionHasNoErrors()->assertSessionHasInput('full_name', 'Jane Doe');
+    }
+
     public function test_api_failure_falls_back_to_the_template_and_does_not_use_an_attempt(): void
     {
         $quota = Http::response(['error' => ['message' => 'quota']], 429);

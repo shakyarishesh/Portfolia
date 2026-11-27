@@ -42,19 +42,25 @@ PROMPT;
             'generationConfig' => ['temperature' => 0],
         ];
 
-        // The free tier often answers "busy" (503) or "quota" (429): retry, then try the lighter model.
+        // The free tier often answers "busy" (503), "quota" (429) or hangs: retry, then try the other model.
+        $res = $timeout = null;
         foreach (array_unique(array_filter([config('services.gemini.model'), config('services.gemini.fallback_model')])) as $model) {
             try {
                 $res = Http::withHeaders(['x-goog-api-key' => config('services.gemini.key')])
-                    ->timeout(90)
+                    ->timeout(60)
                     ->retry([2000, 5000], when: fn ($e) => $e instanceof RequestException && self::busy($e->response), throw: false)
                     ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent", $body);
             } catch (ConnectionException $e) {
-                throw new CvReaderException('Could not reach the Gemini API.', previous: $e);
+                $timeout = $e;
+
+                continue;
             }
             if (! self::busy($res)) {
                 break;
             }
+        }
+        if (! $res) {
+            throw new CvReaderException('Could not reach the Gemini API.', previous: $timeout);
         }
 
         if ($res->failed()) {
